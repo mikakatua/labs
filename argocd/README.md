@@ -37,7 +37,7 @@ Option 2: Add a cluser using the Rancher API endpoint
     - `name`: A named reference for the cluster, e.g. "cluster1".
     - `server`: The Rancher auth proxy endpoint for the cluster in the format: `https://<rancher-server-endpoint>/k8s/clusters/<cluster-id>`
     - `config.bearerToken`: The Rancher API token created above
-    - `config.tlsClientConfig.caData`: PEM encoded CA certificate data for Rancher's SSL endpoint. Only needed if the server certificate is not signed by a public trusted CA.
+    - `config.tlsClientConfig.caData`: Base64 PEM encoded CA certificate data for Rancher's SSL endpoint. Only needed if the server certificate is not signed by a public trusted CA.
 5. Then apply the secret to the Argo CD namespace in the cluster where Argo CD is installed (by default `argocd`):
 ```
 kubectl -n argocd apply -f cluster1-secret.yaml
