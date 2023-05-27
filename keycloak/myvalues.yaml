@@ -1,0 +1,48 @@
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: "17.0.1"
+
+args:
+  - "start"
+  - "--auto-build"
+  - "--hostname=oidc.mydomain.net"
+  - "--hostname-strict-https=false"
+  - "--hostname-strict=false"
+  - "--proxy=edge"
+  - "--http-enabled=true"
+  - "--http-relative-path=/auth"
+
+extraEnv: |
+  # - name: KEYCLOAK_LOGLEVEL
+  #   value: DEBUG
+  # - name: WILDFLY_LOGLEVEL
+  #   value: DEBUG
+  # - name: CACHE_OWNERS_COUNT
+  #   value: "2"
+  # - name: CACHE_OWNERS_AUTH_SESSIONS_COUNT
+  #   value: "2"
+  - name: KEYCLOAK_ADMIN
+    value: admin
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: admin
+  - name: PROXY_ADDRESS_FORWARDING
+    value: "true"
+
+secrets:
+  tls-secret:
+    data:
+      tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNrVENDQVhtZ0F3SUJBZ0lVZS9zUGgzWjMyU0w4YStTT0lWa0JHTllSNFVVd0RRWUpLb1pJaHZjTkFRRUwKQlFBd0ZURVRNQkVHQTFVRUF4TUtiV2x1YVd0MVltVkRRVEFnRncweU1qQTBNVFV4T1RRMU1EQmFHQTh5TVRJeQpNRE15TWpFNU5EVXdNRm93SERFYU1CZ0dBMVVFQXhNUmIybGtZeTV0ZVdSdmJXRnBiaTV1WlhRd1dUQVRCZ2NxCmhrak9QUUlCQmdncWhrak9QUU1CQndOQ0FBU1lXMTFtNWg5Vm5nU0VtdlZBUTdWTUlXQ0tJQzVpM3Y5aVdDUVcKUlljenVrZmJSSXN6SngvenpVa0p6b2xhWW1VaDE1QWRta2xuRkhvRitVTWZNR3A4bzRHYU1JR1hNQTRHQTFVZApEd0VCL3dRRUF3SUZvREFUQmdOVkhTVUVEREFLQmdnckJnRUZCUWNEQVRBTUJnTlZIUk1CQWY4RUFqQUFNQjBHCkExVWREZ1FXQkJSYmlqYW1BQTFGT2kwSnpVYkdlSzRaZFl2enpUQWZCZ05WSFNNRUdEQVdnQlRNV2VmdGVRRGIKZ09tYnp1YTFVcHZtYlNySUtUQWlCZ05WSFJFRUd6QVpnaEZ2YVdSakxtMTVaRzl0WVdsdUxtNWxkSWNFd0tneApBakFOQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBeWQzSmQ2L0t2MXltY1JMN3BETU9MaUdGL042bDh3cnE2UXlMCm9lMURwZTIrT2J2VVJLRjJYZXljM2FDUUVLVEtxWnNNbGUzM0hiWGZqWXIwNkhKbWgxczdxY3NRUzM0eDF1amUKUmZOWUNKYlhlVS9wekVHRnBBaE9Jd21CdlRHVnJGN28xS0dmZTZzbEdxVTdDQ2FuOUxOTnlYT1JFd1FSaXJDbAowY3dobTNTT1lQa2hxL0U4Z0pNSHJvS0l0REwvcFhUOHhsQmpnbUVXa2RGQkJKWFFkbmJnNTl5WFl3MXg0b0l4CjMxMlIrbFR4emY1NkZ3eGVBclNSbWZmZHRELzlnNEx5QURrRXRBNk1JeVI5TXphcU5HQm5iNjk4WVZIQXNqelYKRXE1SWkvT0g4RG9BRmdRVGkzRkR5LzJBeUl2OXBEQ013SkhuSm94L0FWbDY4elhUOGc9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+      tls.key: LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtFWS0tLS0tCk1IY0NBUUVFSU1LL1FiZC94RXYzNEhDa09JbCtkbGtzUDY2SFRMRCt5aENGbXM5MzJ2cmFvQW9HQ0NxR1NNNDkKQXdFSG9VUURRZ0FFbUZ0ZFp1WWZWWjRFaEpyMVFFTzFUQ0ZnaWlBdVl0Ny9ZbGdrRmtXSE03cEgyMFNMTXljZgo4ODFKQ2M2SldtSmxJZGVRSFpwSlp4UjZCZmxESHpCcWZBPT0KLS0tLS1FTkQgRUMgUFJJVkFURSBLRVktLS0tLQo=
+    type: kubernetes.io/tls
+
+ingress:
+  enabled: true
+  rules:
+    - host: oidc.mydomain.net
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - oidc.mydomain.net
+      secretName: keycloak-tls-secret

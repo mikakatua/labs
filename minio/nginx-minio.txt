@@ -1,0 +1,48 @@
+# /etc/nginx/sites-enabled/minio
+server {
+  listen 80 default_server;
+  server_name _;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen              443 ssl;
+  server_name         minio.localnet *.minio.localnet;
+  ssl_certificate     /etc/ssl/minio.localnet.chained.crt;
+  ssl_certificate_key /etc/ssl/minio.localnet.key;
+  ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers         HIGH:!aNULL:!MD5;
+
+  # To allow special characters in headers
+  ignore_invalid_headers off;
+  # Allow any size file to be uploaded.
+  # Set to a value such as 1000m; to restrict file size to a specific value
+  client_max_body_size 0;
+  # To disable buffering
+  proxy_buffering off;
+
+  location / {
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Host $http_host;
+
+    proxy_connect_timeout 300;
+    # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+    proxy_http_version 1.1;
+    proxy_set_header Connection "";
+    chunked_transfer_encoding off;
+
+    proxy_pass https://minio_backend;
+    # Health Check endpoint might go here. See https://www.nginx.com/resources/wiki/modules/healthcheck/
+    # /minio/health/live;
+  }
+}
+
+upstream minio_backend {
+  # Defines a group of servers
+  server minio1.localnet:9000;
+#  server minio2.localnet:9000;
+#  server minio3.localnet:9000;
+#  server minio4.localnet:9000;
+}
