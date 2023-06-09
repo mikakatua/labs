@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-conf
+data:
+  default.conf: |
+    server {
+        listen       80 default_server;
+        root /data/www;
+
+        location /upload {
+
+            limit_except GET HEAD {
+                auth_basic 'Restricted';
+                auth_basic_user_file /etc/nginx/.htpasswd;
+            }
+
+            client_body_temp_path /data/client_temp;
+
+            dav_methods PUT DELETE MKCOL COPY MOVE;
+
+            create_full_put_path  on;
+            dav_access            group:rw  all:r;
+
+            # MAX size of uploaded file, 0 mean unlimited
+            client_max_body_size    0;
+        }
+    }
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nginx-secret
+data:
+  .htpasswd: d2VidXNlcjokMnkkMTAkT0VQeGlSZUJqS0RxT3BJRDNwLjI2dTN5ZUQxekpGNFF6ZjZPTVRNZGI5QmlsOEVQWXdScmEK
+type: Opaque
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nginx-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  volumeMode: Filesystem
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      initContainers:
+      - name: mkdir
+        image: busybox:1.36.0
+        command: [ "/bin/sh", "-c" ]
+        args: [ "mkdir -p /data/www/upload && chown 101 /data/www/upload" ]
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        volumeMounts:
+        - mountPath: /data
+          name: nginx-data
+      containers:
+      - name: nginx
+        image: nginx:1.23.3
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - mountPath: /etc/nginx/conf.d
+          readOnly: true
+          name: nginx-conf
+        - mountPath: /etc/nginx/.htpasswd
+          subPath: .htpasswd
+          name: nginx-secret
+        - mountPath: /data
+          name: nginx-data
+      volumes:
+      - name: nginx-conf
+        configMap:
+          name: nginx-conf
+      - name: nginx-secret
+        secret:
+          secretName: nginx-secret
+          items:
+            - key: .htpasswd
+              path: .htpasswd
+      - name: nginx-data
+        persistentVolumeClaim:
+          claimName: nginx-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: nginx
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  name: nginx
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: www.mydomain.net
+    http:
+      paths:
+      - backend:
+          service:
+            name: nginx
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - www.mydomain.net
+    secretName: tls-secret
+
