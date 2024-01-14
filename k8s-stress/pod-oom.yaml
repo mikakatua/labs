@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oom-test
+spec:
+  selector:
+    matchLabels:
+      app: oom-generator
+  template:
+    metadata:
+      labels:
+        app: oom-generator
+    spec:
+      containers:
+      - name: oom-generator
+        image: mikakatua/oom-generator
+        env:
+        - name: JVM_OPTS
+          value: "-XX:MaxHeapSize=20m"
+        resources:
+          limits:
+            cpu: 800m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu
+spec:
+  selector:
+    matchLabels:
+      app: ubuntu
+  template:
+    metadata:
+      labels:
+        app: ubuntu
+    spec:
+#      hostNetwork: true
+      containers:
+      - name: ubuntu
+        # Ubuntu 22.04 image
+        image: ubuntu:22.04
+        command:
+          - sleep
+          - infinity
+        resources:
+          limits:
+            cpu: 800m
+            memory: 512Mi
+          requests:
+            cpu: 200m
+            memory: 128Mi

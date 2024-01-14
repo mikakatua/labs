@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-memory-stress-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cpu-memory-stress
+  template:
+    metadata:
+      labels:
+        app: cpu-memory-stress
+    spec:
+      containers:
+      - name: stress-container
+        image: colinianking/stress-ng
+        resources:
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+        command: ["stress-ng"]
+        args: ["--cpu", "1", "--timeout", "60s", "--cpu-load", "50", "--vm", "2", "--vm-bytes", "256M"]
