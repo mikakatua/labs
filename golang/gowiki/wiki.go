@@ -11,10 +11,12 @@ import (
 	"regexp"
 )
 
+const PagesDir = "pages"
+const TemplatesDir = "templates"
 const FrontPageTitle = "FrontPage"
 
 var addr = flag.String("addr", ":8080", "http service address")
-var templates = template.Must(template.ParseGlob(filepath.Join("templates", "*.html")))
+var templates = template.Must(template.ParseGlob(filepath.Join(TemplatesDir, "*.html")))
 
 type Page struct {
 	Title string
@@ -22,7 +24,7 @@ type Page struct {
 }
 
 func (p *Page) save() error {
-	filename := filepath.Join("pages", p.Title+".txt")
+	filename := filepath.Join(PagesDir, p.Title+".txt")
 	err := os.WriteFile(filename, p.Body, 0600)
 	if err != nil {
 		log.Printf("Page save failed: %q (%s)", p.Title, err.Error())
@@ -31,7 +33,7 @@ func (p *Page) save() error {
 }
 
 func load(title string) (*Page, error) {
-	filename := filepath.Join("pages", title+".txt")
+	filename := filepath.Join(PagesDir, title+".txt")
 	body, err := os.ReadFile(filename)
 	if err != nil {
 		log.Printf("Page load failed: %q (%s)", title, err.Error())
@@ -65,6 +67,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 			return
 		}
 	}
+	re := regexp.MustCompile(`\[(.*?)\]`) // backquotes here define a raw string literal (everything between backquotes is taken literally)
+	p.Body = []byte(re.ReplaceAllString(string(p.Body), "<a href=\"/view/$1\">$1</a>"))
 	renderTemplate(w, "view", p)
 }
 
@@ -95,7 +99,13 @@ func frontPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+	// Convert p.Body to template.HTML type so the template engine recognizes it as safe HTML
+	// Then we can use .Body directly in the template avoiding printf that is escaping the HTML special characters
+	data := struct {
+		Title string
+		Body  template.HTML
+	}{p.Title, template.HTML(p.Body)}
+	err := templates.ExecuteTemplate(w, tmpl+".html", data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

@@ -1,1 +1,2 @@
-This is the wiki main page
+<p>This is the wiki 🏠 <b>home</b> page</p>
+<p>Start by creating a [NewPage] clicking here</p>
