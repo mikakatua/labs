@@ -1,0 +1,8 @@
+spring:
+  ssl:
+    bundle:
+      jks:
+        myBundle:
+          truststore:
+            location: ""
+            password: ""
