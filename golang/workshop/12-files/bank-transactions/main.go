@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"text/tabwriter"
 )
 
 var (
@@ -81,7 +82,7 @@ func parseBankFile(bankTransactions io.Reader, logger *log.Logger) []transaction
 					}
 					t.id = n
 				case 1:
-					t.payee = val
+					t.payee = strings.TrimSpace(val)
 				case 2:
 					f, err := strconv.ParseFloat(strings.TrimSpace(val), 32)
 					if err != nil {
@@ -131,7 +132,10 @@ func main() {
 	logger := log.New(logf, "", log.Ldate|log.Ltime)
 
 	transactions := parseBankFile(csvf, logger)
+	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
+	fmt.Fprintln(w, "ID\tPAYEE\tSPENT\tCAT")
 	for _, t := range transactions {
-		fmt.Printf("%v\n", t)
+		fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", t.id, t.payee, t.spent, t.category)
 	}
+	w.Flush()
 }
