@@ -28,6 +28,36 @@ const (
 	utilities
 )
 
+type transaction struct {
+	id       int
+	payee    string
+	spent    float32
+	category budgetCategory
+}
+
+// String method is responsible for how enum values
+// will be converted to string and printed
+// it will be called by default when you call fmt.Println()
+// or other formatting functions
+func (bc budgetCategory) String() string {
+	switch bc {
+	case autoFuel:
+		return "autoFuel"
+	case food:
+		return "food"
+	case mortgage:
+		return "mortgage"
+	case repairs:
+		return "repairs"
+	case insurance:
+		return "insurance"
+	case utilities:
+		return "utilities"
+	default:
+		return "unknown"
+	}
+}
+
 func convertToBudgeCategory(category string) (budgetCategory, error) {
 	switch category {
 	case "fuel", "gas":
@@ -47,15 +77,9 @@ func convertToBudgeCategory(category string) (budgetCategory, error) {
 	}
 }
 
-type transaction struct {
-	id       int
-	payee    string
-	spent    float32
-	category budgetCategory
-}
-
-func parseBankFile(bankTransactions io.Reader, logger *log.Logger) []transaction {
+func parseBankFile(bankTransactions io.Reader, logger *log.Logger) ([]transaction, struct{ ok, ko int }) {
 	tx := []transaction{}
+	cnt := struct{ ok, ko int }{}
 	r := csv.NewReader(bankTransactions)
 	header := true
 	for {
@@ -101,13 +125,16 @@ func parseBankFile(bankTransactions io.Reader, logger *log.Logger) []transaction
 					t.category = c
 				}
 			}
-			if !skip {
+			if skip {
+				cnt.ko++
+			} else {
 				tx = append(tx, t)
+				cnt.ok++
 			}
 		}
 		header = false
 	}
-	return tx
+	return tx, cnt
 }
 
 func main() {
@@ -131,11 +158,14 @@ func main() {
 
 	logger := log.New(logf, "", log.Ldate|log.Ltime)
 
-	transactions := parseBankFile(csvf, logger)
+	transactions, counter := parseBankFile(csvf, logger)
 	w := tabwriter.NewWriter(os.Stdout, 0, 1, 2, ' ', 0)
-	fmt.Fprintln(w, "ID\tPAYEE\tSPENT\tCAT")
+	fmt.Fprintln(w, " ID\tPAYEE\t   SPENT\tCATEGORY")
 	for _, t := range transactions {
-		fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", t.id, t.payee, t.spent, t.category)
+		fmt.Fprintf(w, "%3d\t%s\t%8.2f\t%s\n", t.id, t.payee, t.spent, budgetCategory(t.category))
 	}
 	w.Flush()
+	fmt.Printf("\nTotal records: %d", counter.ok+counter.ko)
+	fmt.Printf("\nRecords printed: %d", counter.ok)
+	fmt.Printf("\nRecords skipped: %d\n", counter.ko)
 }
