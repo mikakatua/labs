@@ -1,0 +1,18 @@
+CREATE USER :app_user WITH
+  PASSWORD :'app_pass';
+
+CREATE DATABASE :app_db
+    WITH
+    OWNER = :app_user
+    ENCODING = 'UTF8';
+REVOKE CONNECT ON DATABASE :app_db FROM public;
+GRANT CONNECT ON DATABASE :app_db TO :app_user;
+
+GRANT ALL PRIVILEGES ON DATABASE :app_db TO :app_user;
+
+\c :app_db
+
+CREATE SCHEMA :app_schema AUTHORIZATION :app_user;
+
+ALTER USER :app_user SET search_path TO :app_schema, public;
+
