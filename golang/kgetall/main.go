@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
-  "sort"
+	"sort"
 
-  "k8s.io/client-go/discovery"
-  "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 )
 
 // Resource holds information about a Kubernetes resource
 type Resource struct {
-  Name string
-  Group string
-  Namespaced bool
+	Name       string
+	Group      string
+	Namespaced bool
 }
 
 // GetK8sConfig returns the Kubernetes client configuration
@@ -56,43 +56,43 @@ func main() {
 	// create the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-    log.Fatalf("Error creating Kubernetes client: %v", err)
+		log.Fatalf("Error creating Kubernetes client: %v", err)
 	}
 
-  // Create a Discovery client
-  discoveryClient := discovery.NewDiscoveryClient(clientset.RESTClient())
+	// Create a Discovery client
+	discoveryClient := discovery.NewDiscoveryClient(clientset.RESTClient())
 
-  // Get the API resources
-  apiResourceList, err := discoveryClient.ServerPreferredResources()
-  if err != nil {
-      log.Fatalf("Error getting API resources: %v", err)
-  }
+	// Get the API resources
+	apiResourceList, err := discoveryClient.ServerPreferredResources()
+	if err != nil {
+		log.Fatalf("Error getting API resources: %v", err)
+	}
 
-  // fmt.Println(apiResourceList)
-  // panic("The end")
+	// fmt.Println(apiResourceList)
+	// panic("The end")
 
-  // Collect the resources in a slice
-  var resources []Resource
-  for _, apiResourceGroup := range apiResourceList {
-      if apiResourceGroup == nil {
-          continue
-      }
-      for _, apiResource := range apiResourceGroup.APIResources {
-          resources = append(resources, Resource{
-              Name: apiResource.Name,
-              Group: apiResource.Group,
-              Namespaced: apiResource.Namespaced,
-          })
-      }
-  }
+	// Collect the resources in a slice
+	var resources []Resource
+	for _, apiResourceGroup := range apiResourceList {
+		if apiResourceGroup == nil {
+			continue
+		}
+		for _, apiResource := range apiResourceGroup.APIResources {
+			resources = append(resources, Resource{
+				Name:       apiResource.Name,
+				Group:      apiResource.Group,
+				Namespaced: apiResource.Namespaced,
+			})
+		}
+	}
 
-  // Sort the resources by name
-  sort.Slice(resources, func(i, j int) bool {
-      return resources[i].Name < resources[j].Name
-  })
+	// Sort the resources by name
+	sort.Slice(resources, func(i, j int) bool {
+		return resources[i].Name < resources[j].Name
+	})
 
-  // Print the sorted resources
-  for _, resource := range resources {
-      fmt.Printf("Name: %s, Group: %s, Namespaced: %v\n", resource.Name, resource.Group, resource.Namespaced)
-  }
+	// Print the sorted resources
+	for _, resource := range resources {
+		fmt.Printf("Name: %s, Group: %s, Namespaced: %v\n", resource.Name, resource.Group, resource.Namespaced)
+	}
 }
