@@ -23,6 +23,22 @@ module "eks" {
         enableNetworkPolicy = "true"
       })
     }
+
+    snapshot-controller = {
+    # addon_version = "v8.1.0-eksbuild.2"
+      most_recent   = true
+    }
+
+    aws-ebs-csi-driver = {
+    # addon_version            = "v1.37.0-eksbuild.1"
+      most_recent              = true
+      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+      configuration_values     = jsonencode({
+        defaultStorageClass = {
+          enabled = true
+        }
+      })
+    }
   }
 
   vpc_id     = module.vpc.vpc_id
