@@ -25,12 +25,12 @@ module "eks" {
     }
 
     snapshot-controller = {
-    # addon_version = "v8.1.0-eksbuild.2"
+      # addon_version = "v8.1.0-eksbuild.2"
       most_recent   = true
     }
 
     aws-ebs-csi-driver = {
-    # addon_version            = "v1.37.0-eksbuild.1"
+      # addon_version            = "v1.37.0-eksbuild.1"
       most_recent              = true
       service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
       configuration_values     = jsonencode({
@@ -38,6 +38,12 @@ module "eks" {
           enabled = true
         }
       })
+    }
+
+    aws-efs-csi-driver = {
+      # addon_version            = "v2.1.0-eksbuild.1"
+      most_recent              = true
+      service_account_role_arn = module.efs_csi_driver_irsa.iam_role_arn
     }
   }
 

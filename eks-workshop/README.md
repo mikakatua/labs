@@ -31,11 +31,12 @@ aws eks update-kubeconfig --name eks-workshop
 ### Install Kubernetes addons
 
 * AWS Load Balancer controller: [instructions](./docs/load-balancer.md)
-* EBS CSI Driver: [instructions](./docs/storage.md)
+* EBS and EFS CSI drivers: [instructions](./docs/storage.md)
 
 ## Deploy the application
+You can find the full source code for the sample application on [GitHub](https://github.com/aws-containers/retail-store-sample-app).
 ```
-kubectl apply -k web-store-application
+kubectl apply -k sample-app
 kubectl get deployment -l app.kubernetes.io/created-by=eks-workshop -A
 ```
 
@@ -45,7 +46,7 @@ Additions to the original base application:
 
 ## Clean up
 ```
-kubectl delete -k web-store-application
+kubectl delete -k sample-app
 terraform -chdir=terraform destroy -auto-approve
 ```
 

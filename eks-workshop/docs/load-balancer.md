@@ -1,4 +1,4 @@
-## Install the AWS Load Balancer controller
+# Elastic Load Balancers for a Kubernetes cluster
 
 The [AWS Load Balancer Controller](https://github.com/kubernetes-sigs/aws-load-balancer-controller) manages ALBs and NLBs to satisfy Kubernetes Ingress and Service resources:
 * For each Ingress with `ingressClassName: alb` it creates an ALB listening on ports 80 and 443 by default
@@ -31,6 +31,8 @@ There are several reasons why we might want to configure the ELB to operate in I
 1. It creates a more efficient network path for inbound connections, bypassing `kube-proxy` on the EC2 worker node
 2. It removes the need to consider aspects such as `externalTrafficPolicy` and the trade-offs of its various configuration options
 3. An application is running on Fargate instead of EC2
+
+## Install the AWS Load Balancer controller
 
 ```
 # Set environment variables from terraform outputs

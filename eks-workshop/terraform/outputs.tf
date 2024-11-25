@@ -4,5 +4,6 @@ output "environment_variables" {
     EKS_CLUSTER_NAME   = var.cluster_name
     LBC_CHART_VERSION  = var.load_balancer_controller_chart_version
     LBC_ROLE_ARN       = module.eks_blueprints_addons.aws_load_balancer_controller.iam_role_arn
+    EFS_ID             = aws_efs_file_system.efsassets.id
   }
 }
