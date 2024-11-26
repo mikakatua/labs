@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/created-by: eks-workshop
     app.kubernetes.io/type: app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app.kubernetes.io/name: assets
@@ -26,6 +26,14 @@ spec:
     spec:
       serviceAccountName: assets
       securityContext: {}
+      initContainers:
+        - name: copy
+          image: "public.ecr.aws/aws-containers/retail-store-sample-assets:0.4.0"
+          command:
+            ["/bin/sh", "-c", "cp -R /usr/share/nginx/html/assets/* /efsvolume"]
+          volumeMounts:
+            - name: efsvolume
+              mountPath: /efsvolume
       containers:
         - name: assets
           envFrom:
@@ -54,9 +62,10 @@ spec:
               cpu: 128m
               memory: 128Mi
           volumeMounts:
-            - mountPath: /tmp
-              name: tmp-volume
+            - name: efsvolume
+              mountPath: /usr/share/nginx/html/assets
       volumes:
-        - name: tmp-volume
-          emptyDir:
-            medium: Memory
+        - name: efsvolume
+          persistentVolumeClaim:
+            claimName: efs-claim
+

@@ -43,6 +43,7 @@ kubectl get deployment -l app.kubernetes.io/created-by=eks-workshop -A
 Additions to the original base application:
 * Ingress resource to expose the UI web store application to the outside world creating an ALB
 * EBS volume to be consumed by the MySQL database from the catalog microservice utilizing a statefulset
+* EFS volume to store the product images for the assets microservice and scale the deployment to 2 replicas
 
 ## Clean up
 ```

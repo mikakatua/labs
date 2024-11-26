@@ -11,7 +11,7 @@ Below is a summary of the two AWS storage services we can utilize and integrate 
 
 In order to utilize Amazon EBS volumes with dynamic provisioning on our EKS cluster, we need to confirm that we have the [Amanzon Elatic Block Store (EBS) CSI Driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver) installed. The driver allows Amazon EKS clusters to manage the lifecycle of Amazon EBS volumes for persistent volumes.
 
-The EBS CSI driver has been already installed as an [Amazon EKS managed add-on](https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html). Verify the pods are running:
+The EBS CSI driver has been already installed as an [Amazon EKS managed add-on](https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html). Verify the pods are running:
 ```
 $ kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
 NAME                                  READY   STATUS    RESTARTS   AGE
@@ -32,6 +32,34 @@ gp2                            kubernetes.io/aws-ebs   Delete          WaitForFi
 
 ## Install the EFS CSI driver
 
-In order to utilize Amazon EBS volumes with dynamic provisioning on our EKS cluster, we need to confirm that we have the [Amanzon Elatic Block Store (EBS) CSI Driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver) installed. The driver allows Amazon EKS clusters to manage the lifecycle of Amazon EBS volumes for persistent volumes.
+The [Amazon Elastic File System Container Storage Interface (CSI) Driver](https://github.com/kubernetes-sigs/aws-efs-csi-driver) enables you to run stateful containerized applications by providing a CSI interface that allows Kubernetes clusters running on AWS to manage the lifecycle of Amazon EFS file systems.
 
-The EBS CSI driver has been already installed as an [Amazon EKS managed add-on](https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html).
+To utilize Amazon EFS with dynamic provisioning on our EKS cluster, we first need to confirm that we have the EFS CSI Driver installed. The driver implements the CSI specification which allows container orchestrators to manage Amazon EFS file systems throughout their lifecycle.
+
+> [!NOTE]
+> You can't use dynamic persistent volume provisioning with Fargate nodes, but you can use static provisioning.
+
+The EFS CSI driver has been already installed as an [Amazon EKS managed add-on](https://docs.aws.amazon.com/eks/latest/userguide/efs-csi.html). Verify the pods are running:
+```
+$ kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-efs-csi-driver
+NAME                                READY   STATUS    RESTARTS   AGE
+efs-csi-controller-cb5575b9-hmjfg   3/3     Running   0          5m18s
+efs-csi-controller-cb5575b9-s8nqf   3/3     Running   0          5m18s
+efs-csi-node-6xh6p                  3/3     Running   0          5m18s
+efs-csi-node-74749                  3/3     Running   0          5m18s
+efs-csi-node-xzhm4                  3/3     Running   0          5m18s
+```
+
+The EFS CSI driver supports both dynamic and static provisioning. For dynamic provisioning, the driver creates an access point for each PersistentVolume, but requires an existing AWS EFS file system that must be specified in the StorageClass parameters. Static provisioning also requires a pre-created AWS EFS file system, which can then be mounted as a volume inside a container using the driver.
+
+> [!NOTE]
+> There is a resource quota of 1000 access points that can be created for each Amazon EFS file system.
+
+Create a StorageClass object configured to use our pre-provisioned EFS file system and [EFS Access points](https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html) in provisioning mode.
+
+```
+# Set environment variables from terraform outputs
+eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
+
+kubectl kustomize manifests/efs-storageclass | envsubst | kubectl apply -f-
+```
