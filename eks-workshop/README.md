@@ -23,6 +23,9 @@ aws eks describe-addon-configuration --addon-name aws-ebs-csi-driver \
 --addon-version v1.37.0-eksbuild.1  | jq -r '.configurationSchema | fromjson'
 ```
 
+## Cluster upgrades
+For updating self-managed nodes, see [here](https://docs.aws.amazon.com/eks/latest/userguide/update-workers.html). To update managed nodes see instructions [here](./docs/managed-node-groups.md)
+
 ### Update the kubeconfig file
 ```
 aws eks update-kubeconfig --name eks-workshop
@@ -44,6 +47,7 @@ Additions to the original base application:
 * Ingress resource to expose the UI web store application to the outside world creating an ALB
 * EBS volume to be consumed by the MySQL database from the catalog microservice utilizing a statefulset
 * EFS volume to store the product images for the assets microservice and scale the deployment to 2 replicas
+* Pod Affinity and Anti-Affinity rules to ensure the checkout and checkout-redis pods run on the desired nodes
 
 ## Clean up
 ```

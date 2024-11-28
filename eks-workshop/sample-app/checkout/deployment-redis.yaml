@@ -21,6 +21,16 @@ spec:
         app.kubernetes.io/created-by: eks-workshop
         app.kubernetes.io/team: database
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/component
+                    operator: In
+                    values:
+                      - redis
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: redis
           image: "public.ecr.aws/docker/library/redis:6.0-alpine"
