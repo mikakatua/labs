@@ -5,15 +5,17 @@ variable "cluster_name" {
 }
 
 variable "cluster_version" {
-  description = "EKS cluster version."
+  description = "Kubernetes version for the EKS cluster"
   type        = string
-  default     = "1.30"
+  default     = "1.31"
 }
 
+# Pin the AMI version to manage updates manually and ensure stability
+# For development environments, consider setting use_latest_ami_release_version = true
 variable "ami_release_version" {
-  description = "Default EKS AMI release version for node groups"
+  description = "EKS AMI release version for node groups"
   type        = string
-  default     = "1.30.0-20240625"
+  default     = "1.31.2-20241121"
 }
 
 variable "vpc_cidr" {

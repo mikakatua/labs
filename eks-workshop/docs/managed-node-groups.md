@@ -19,6 +19,9 @@ aws ssm get-parameter --name /aws/service/eks/optimized-ami/$K8S_VERSION/amazon-
 
 When Amazon releases a new AMI version, it does not automatically update the AMI in your managed node groups. Instead, users need to manually initiate updates by modifying the node group's launch template or performing a node group update through the EKS console or API.
 
+> [!NOTE]
+> When using the [EKS Terraform module](https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest) you can set the desired AMI with the `ami_release_version` input and apply the changes to update your cluster nodes.
+
 You can initiate an update of an existing managed node group like so:
 ```
 # Set environment variables from terraform outputs
@@ -29,4 +32,25 @@ aws eks update-nodegroup-version --cluster-name $EKS_CLUSTER_NAME --nodegroup-na
 By default, the latest available AMI version for the node group's Kubernetes version is used.
 
 ## Cluster Upgrades
-Refer the [Amazon EKS Upgrades Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/693bdee4-bc31-41d5-841f-54e3e54f8f4a) for step-by-step guidance and best practices in planning and upgrading EKS Clusters.
+Refer to the [Best Practices for Cluster Upgrades](https://docs.aws.amazon.com/eks/latest/best-practices/cluster-upgrades.html) documentation.
+
+> [!NOTE]
+> When using the [EKS Terraform module](https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest) you can set the Kubernetes version with the `cluster_version` input and apply the changes to update your cluster nodes.
+
+You can submit the request to upgrade your EKS control plane version using:
+```
+eksctl upgrade cluster --name $EKS_CLUSTER_NAME --version $K8S_VERSION --approve
+```
+or
+```
+aws eks update-cluster-version --name $EKS_CLUSTER_NAME --kubernetes-version $K8S_VERSION
+```
+After your cluster update is complete, upgrade your Kubernetes add-ons and custom controllers, as required.
+
+Finally, upgrade your nodes to the same Kubernetes minor version as your upgraded cluster.
+```
+eksctl upgrade nodegroup --name=$EKS_DEFAULT_MNG_NAME --cluster=$EKS_CLUSTER_NAME --kubernetes-version=$K8S_VERSION
+```
+
+You cannot downgrade the Kubernetes of an Amazon EKS cluster. Instead, create a new cluster on a previous Amazon EKS version and migrate the workloads.
+
