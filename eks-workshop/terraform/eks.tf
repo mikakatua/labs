@@ -55,13 +55,13 @@ module "eks" {
 
   eks_managed_node_groups = {
     default = {
-      ami_release_version            = var.ami_release_version
-      ami_type                       = "AL2023_x86_64_STANDARD"
-      instance_types                 = ["m5.large"]
-      force_update_version           = true
-      use_name_prefix                = false
-      iam_role_name                  = "${var.cluster_name}-ng-default"
-      iam_role_use_name_prefix       = false
+      ami_release_version      = var.ami_release_version
+      ami_type                 = "AL2023_x86_64_STANDARD"
+      instance_types           = ["m5.large"]
+      force_update_version     = true
+      use_name_prefix          = false
+      iam_role_name            = "${var.cluster_name}-ng-default"
+      iam_role_use_name_prefix = false
 
       min_size     = 3
       max_size     = 6
@@ -75,9 +75,28 @@ module "eks" {
         workshop-default = "yes"
       }
     }
+    managed-spot = {
+      capacity_type            = "SPOT"
+      ami_type                 = "AL2023_x86_64_STANDARD"
+      instance_types           = ["c5.large", "c5d.large", "c5a.large", "c5ad.large", "c6a.large"] # Mixing instance types for spot capacity flexibility
+      force_update_version     = true
+      use_name_prefix          = false
+      iam_role_name            = "${var.cluster_name}-spot-node"
+      iam_role_use_name_prefix = false
+
+      min_size     = 2
+      max_size     = 3
+      desired_size = 2
+
+      taints = {
+        spotInstance = {
+          key    = "spotInstance"
+          value  = "true"
+          effect = "PREFER_NO_SCHEDULE"
+        }
+      }
+    }
   }
 
-  tags = merge(local.tags, {
-    "karpenter.sh/discovery" = var.cluster_name
-  })
+  tags = local.tags
 }

@@ -81,3 +81,5 @@ spec:
         - name: tmp-volume
           emptyDir:
             medium: Memory
+      nodeSelector:
+        eks.amazonaws.com/capacityType: SPOT

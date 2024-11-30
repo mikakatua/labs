@@ -34,7 +34,7 @@ There are several reasons why we might want to configure the ELB to operate in I
 
 ## Install the AWS Load Balancer controller
 
-```
+```bash
 # Set environment variables from terraform outputs
 eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
 

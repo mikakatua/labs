@@ -1,8 +1,5 @@
 # Create an Amazon EFS file system
 
-data "aws_caller_identity" "current" {}
-data "aws_partition" "current" {}
-
 resource "aws_security_group" "efs" {
   name        = "${var.cluster_name}-efs"
   description = "efs security group allow access to port 2049"
