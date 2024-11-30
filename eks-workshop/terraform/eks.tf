@@ -92,7 +92,7 @@ module "eks" {
         spotInstance = {
           key    = "spotInstance"
           value  = "true"
-          effect = "PREFER_NO_SCHEDULE"
+          effect = "PREFER_NO_SCHEDULE" # we prefer pods not be scheduled on Spot Instances
         }
       }
     }
