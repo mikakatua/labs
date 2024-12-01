@@ -129,9 +129,12 @@ Find more information about using Spot instances [here](./spot-instances.md)
 ec2-instance-selector --vcpus 2 --memory 4 --gpus 0 --current-generation \
   -a x86_64 --deny-list 't.*' --output table-wide
 ```
+
 > [!NOTE]
 > When using the [EKS Terraform module](https://registry.terraform.io/modules/terraform-aws-modules/eks/aws/latest) set the `capacity_type = "SPOT"` in the node group to use spot instances.
 
+The following command creates a new node group with Spot instances:
+```bash
 aws eks create-nodegroup \
   --cluster-name $EKS_CLUSTER_NAME \
   --nodegroup-name managed-spot \
@@ -141,6 +144,7 @@ aws eks create-nodegroup \
   --capacity-type SPOT \
   --scaling-config minSize=2,maxSize=3,desiredSize=2 \
   --disk-size 20
+```
 
 We can list all of the nodes in our existing EKS cluster. To get additional detail about the capacity type, we use the `-L eks.amazonaws.com/capacityType` parameter.
 ```

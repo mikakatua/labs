@@ -40,15 +40,16 @@ aws eks update-kubeconfig --name eks-workshop
 You can find the full source code for the sample application on [GitHub](https://github.com/aws-containers/retail-store-sample-app).
 ```bash
 kubectl apply -k sample-app
-kubectl get deployment -l app.kubernetes.io/created-by=eks-workshop -A
+kubectl get all -l app.kubernetes.io/created-by=eks-workshop -A
 ```
 
 Additions to the original base application:
 * Ingress resource to expose the UI web store application to the outside world creating an ALB
-* EBS volume to be consumed by the MySQL database from the catalog microservice utilizing a statefulset
-* EFS volume to store the product images for the assets microservice and scale the deployment to 2 replicas
-* Pod Affinity and Anti-Affinity rules to ensure the checkout and checkout-redis pods run on the desired nodes
-* Modified the catalog component to run on Spot instances by adding a nodeSelector
+* EBS volume to be consumed by the MySQL database from the `catalog-mysql` microservice utilizing a statefulset
+* EFS volume to store the product images for the `assets` microservice and scale the deployment to 2 replicas
+* Pod Affinity and Anti-Affinity rules to ensure the `checkout` and `checkout-redis` pods run on the desired nodes
+* Modified the `catalog` component to run on Spot instances by adding a nodeSelector
+* Updated the `checkout` deployment to increase the resources and schedule its pods on Fargate
 
 ## Clean up
 ```bash

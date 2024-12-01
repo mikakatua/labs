@@ -98,5 +98,18 @@ module "eks" {
     }
   }
 
+  fargate_profiles = {
+    checkout-profile = {
+      selectors = [
+        {
+          namespace = "checkout"
+          labels = {
+            fargate = "yes"
+          }
+        }
+      ]
+    }
+  }
+
   tags = local.tags
 }
