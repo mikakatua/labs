@@ -1,4 +1,6 @@
-# Creates an IAM role required by the AWS Load Balancer Controller
+# Create IAM roles for:
+# - AWS Load Balancer Controller
+# - Kubernetes Cluster Autoscaler
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "1.16.3"
@@ -12,6 +14,14 @@ module "eks_blueprints_addons" {
   aws_load_balancer_controller = {
     role_name   = "${module.eks.cluster_name}-alb-controller"
     policy_name = "${module.eks.cluster_name}-alb-controller"
+  }
+
+  enable_cluster_autoscaler = true
+  cluster_autoscaler = {
+    role_name              = "${module.eks.cluster_name}-cluster-autoscaler"
+    role_name_use_prefix   = false
+    policy_name            = "${module.eks.cluster_name}-cluster-autoscaler"
+    policy_name_use_prefix = false
   }
 
   create_kubernetes_resources = false

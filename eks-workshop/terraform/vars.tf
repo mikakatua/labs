@@ -27,6 +27,11 @@ variable "vpc_cidr" {
 variable "load_balancer_controller_chart_version" {
   description = "The chart version of aws-load-balancer-controller to use"
   type        = string
-  default = "1.8.2"
+  default     = "1.10.0"
 }
 
+variable "cluster_autoscaler_chart_version" {
+  description = "The chart version of cluster-autoscaler to use"
+  type        = string
+  default     = "9.43.2"
+}

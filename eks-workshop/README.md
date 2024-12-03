@@ -23,9 +23,6 @@ aws eks describe-addon-configuration --addon-name aws-ebs-csi-driver \
 --addon-version v1.37.0-eksbuild.1  | jq -r '.configurationSchema | fromjson'
 ```
 
-## Cluster upgrades
-For updating self-managed nodes, see [here](https://docs.aws.amazon.com/eks/latest/userguide/update-workers.html). To update managed nodes see instructions [here](./docs/managed-node-groups.md)
-
 ### Update the kubeconfig file
 ```bash
 aws eks update-kubeconfig --name eks-workshop
@@ -50,6 +47,12 @@ Additions to the original base application:
 * Pod Affinity and Anti-Affinity rules to ensure the `checkout` and `checkout-redis` pods run on the desired nodes
 * Modified the `catalog` component to run on Spot instances by adding a nodeSelector
 * Updated the `checkout` deployment to increase the resources and schedule its pods on Fargate
+
+## Cluster upgrades
+For updating self-managed nodes, see [here](https://docs.aws.amazon.com/eks/latest/userguide/update-workers.html). To update managed nodes see instructions [here](./docs/managed-node-groups.md)
+
+## Autoscaling
+See [documentation](./docs/autoscaling.md) about how to automatically scaling both the number of pods and a cluster's compute capacity.
 
 ## Clean up
 ```bash
