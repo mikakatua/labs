@@ -147,7 +147,7 @@ aws eks create-nodegroup \
 ```
 
 We can list all of the nodes in our existing EKS cluster. To get additional detail about the capacity type, we use the `-L eks.amazonaws.com/capacityType` parameter.
-```
+```bash
 $ kubectl get nodes -L eks.amazonaws.com/capacityType,eks.amazonaws.com/nodegroup
 NAME                                             STATUS   ROLES    AGE     VERSION               CAPACITYTYPE   NODEGROUP
 ip-10-42-117-63.eu-central-1.compute.internal    Ready    <none>   39m     v1.31.2-eks-94953ac   ON_DEMAND      default

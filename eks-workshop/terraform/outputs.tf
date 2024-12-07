@@ -9,5 +9,8 @@ output "environment_variables" {
     EFS_ID                           = aws_efs_file_system.efsassets.id
     CLUSTER_AUTOSCALER_CHART_VERSION = var.cluster_autoscaler_chart_version
     CLUSTER_AUTOSCALER_ROLE          = module.eks_blueprints_addons.cluster_autoscaler.iam_role_arn
+    KARPENTER_VERSION                = var.karpenter_version
+    KARPENTER_ROLE                   = module.karpenter.node_iam_role_name
+    KARPENTER_SQS_QUEUE              = module.karpenter.queue_name
   }
 }

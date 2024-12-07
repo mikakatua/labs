@@ -57,5 +57,72 @@ After applying these changes 2 additional nodes have been provisioned by the Clu
 
 Now scale all your deployments to 5 replicas:
 ```bash
-kubectl get deployments -l app.kubernetes.io/created-by=eks-workshop -A -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name --no-headers | xargs -n2 sh -c 'kubectl scale deployment -n $0 $1 --replicas=5'
+kubectl get deployments -l app.kubernetes.io/created-by=eks-workshop -A \
+  -o custom-columns=NS:.metadata.namespace,NAME:.metadata.name --no-headers \
+  | xargs -n2 sh -c 'kubectl scale deployment -n $0 $1 --replicas=5'
 ```
+
+## Karpenter
+[Karpenter](https://karpenter.sh/) removes the need for managing node groups by directly provisioning instances that match the pod's requirements. This leads to a more cost-effective and flexible scaling process.
+
+> [!IMPORTANT]
+> It is not recommended to use the Kubernetes Cluster Autoscaler at the same time as Karpenter.
+
+We install Karpenter using Helm. Various pre-requisites were created by Terraform, including:
+* An IAM roles for the Karpenter controller and the nodes that Karpenter creates
+* An EKS Access entry for the node IAM role so the nodes can join the EKS cluster
+* An SQS queue to receive CloudWatch events, such as Spot instance interruption, instance re-balance and other
+
+Karpenter must know which subnets and security groups to use when creating EKS instances. These subnets and security groups can be configured explicitly during the deployment of Karpenter using the Karpenter Helm chart. However, Karpenter can also automatically identify these resources if they are tagged with the key `karpenter.sh/discovery` and the value set to the name of the cluster.
+
+```bash
+# Set environment variables from terraform outputs
+eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
+
+helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
+  --version ${KARPENTER_VERSION} \
+  --namespace karpenter --create-namespace \
+  --set settings.clusterName=${EKS_CLUSTER_NAME} \
+  --set settings.interruptionQueueName=${KARPENTER_SQS_QUEUE} \
+  --set controller.resources.requests.cpu=1 \
+  --set controller.resources.requests.memory=1Gi \
+  --set controller.resources.limits.cpu=1 \
+  --set controller.resources.limits.memory=1Gi \
+  --wait
+```
+
+To configure Karpenter, you create [NodePools](https://karpenter.sh/docs/concepts/nodepools/) to define instance types, taints to add to provisioned nodes, node expiration, maximum amount of resources, ... Each NodePool must reference an [EC2NodeClass](https://karpenter.sh/docs/concepts/nodeclasses/) which provides the specific configuration that applies to AWS.
+
+Apply the NodePool and EC2NodeClass with the following command:
+```bash
+kubectl kustomize manifests/karpenter/nodepool \
+  | envsubst | kubectl apply -f-
+```
+
+We'll use the following Deployment to trigger Karpenter to scale out:
+```bash
+kubectl apply -k manifests/karpenter/scale
+```
+
+> [!TIP]
+> You can install [eks-node-viewer](https://github.com/awslabs/eks-node-viewer) for visualizing dynamic node usage within a cluster.
+
+Scale the deployment:
+```bash
+kubectl scale -n other deployment/inflate --replicas 5
+```
+
+Once all the Pods are running, let’s check the instance types of the nodes:
+```bash
+kubectl get nodes -l type=karpenter -o custom-columns="NAME:.metadata.name,INSTANCE-TYPE:.metadata.labels.node\.kubernetes\.io/instance-type"
+```
+
+**Consolidation**:  Karpenter will optimize your cluster's compute on an on-going basis. For example, if workloads are running on under-utilized compute instances, it will consolidate them to fewer instances. Let's explore how to trigger automatic consolidation:
+1. Scale the inflate workload from 5 to 12 replicas, triggering Karpenter to provision additional capacity
+1. Scale down the workload back down to 5 replicas
+1. Observe Karpenter consolidating the compute
+
+This example shows how Karpenter can dynamically select the right instance type based on the resource requirements of the workloads.
+
+> [!NOTE]
+> For a more thorough set of hands-on exercises please see the [Karpenter Workshop](https://catalog.workshops.aws/karpenter).

@@ -35,3 +35,9 @@ variable "cluster_autoscaler_chart_version" {
   type        = string
   default     = "9.43.2"
 }
+
+variable "karpenter_version" {
+  description = "The version of Karpenter to use"
+  type        = string
+  default     = "1.1.0"
+}

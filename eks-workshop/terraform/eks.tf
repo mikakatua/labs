@@ -45,13 +45,19 @@ module "eks" {
       most_recent              = true
       service_account_role_arn = module.efs_csi_driver_irsa.iam_role_arn
     }
+
+    eks-pod-identity-agent = {
+      # addon_version            = "v1.3.4-eksbuild"
+      most_recent = true
+    }
+
   }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  create_cluster_security_group = false
-  create_node_security_group    = false
+  # create_cluster_security_group = false
+  # create_node_security_group    = false
 
   eks_managed_node_groups = {
     default = {
@@ -110,6 +116,13 @@ module "eks" {
       ]
     }
   }
+
+  node_security_group_tags = merge(local.tags, {
+    # NOTE - if creating multiple security groups with this module, only tag the
+    # security group that Karpenter should utilize with the following tag
+    # (i.e. - at most, only one security group should have this tag in your account)
+    "karpenter.sh/discovery" = var.cluster_name
+  })
 
   tags = local.tags
 }
