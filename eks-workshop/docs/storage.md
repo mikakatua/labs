@@ -57,6 +57,7 @@ The EFS CSI driver supports both dynamic and static provisioning. For dynamic pr
 
 Create a StorageClass object configured to use our pre-provisioned EFS file system and [EFS Access points](https://docs.aws.amazon.com/efs/latest/ug/efs-access-points.html) in provisioning mode.
 
+This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
 # Set environment variables from terraform outputs
 eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')

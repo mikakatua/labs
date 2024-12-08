@@ -1,4 +1,7 @@
 # Managed Node Groups
+> [!NOTE]
+> For updating self-managed nodes, see [here](https://docs.aws.amazon.com/eks/latest/userguide/update-workers.html).
+
 You deploy one or more worker nodes (EC2 instances) into a node group. The nodes are deployed in an EC2 Auto Scaling group.
 [Amazon EKS managed node groups](https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html) automate the provisioning and lifecycle management of nodes for Amazon EKS clusters. AWS takes care of tasks like patching, updating, and scaling nodes, easing operational aspects. This greatly simplifies operational activities such as rolling updates for new AMIs or Kubernetes version deployments.
 

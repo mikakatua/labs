@@ -131,3 +131,17 @@ data "aws_iam_policy_document" "cmk_efs" {
     }
   }
 }
+
+resource "kubectl_manifest" "efs_storage_class" {
+  yaml_body = <<YAML
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: ${aws_efs_file_system.efsassets.id}
+  directoryPerms: "700"
+YAML
+}
