@@ -75,6 +75,7 @@ We install Karpenter using Helm. Various pre-requisites were created by Terrafor
 
 Karpenter must know which subnets and security groups to use when creating EKS instances. These subnets and security groups can be configured explicitly during the deployment of Karpenter using the Karpenter Helm chart. However, Karpenter can also automatically identify these resources if they are tagged with the key `karpenter.sh/discovery` and the value set to the name of the cluster.
 
+This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
 # Set environment variables from terraform outputs
 eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
@@ -93,7 +94,7 @@ helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
 
 To configure Karpenter, you create [NodePools](https://karpenter.sh/docs/concepts/nodepools/) to define instance types, taints to add to provisioned nodes, node expiration, maximum amount of resources, ... Each NodePool must reference an [EC2NodeClass](https://karpenter.sh/docs/concepts/nodeclasses/) which provides the specific configuration that applies to AWS.
 
-Apply the NodePool and EC2NodeClass with the following command:
+This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
 kubectl kustomize manifests/karpenter/nodepool \
   | envsubst | kubectl apply -f-
@@ -112,9 +113,11 @@ Scale the deployment:
 kubectl scale -n other deployment/inflate --replicas 5
 ```
 
-Once all the Pods are running, let’s check the instance types of the nodes:
-```bash
-kubectl get nodes -l type=karpenter -o custom-columns="NAME:.metadata.name,INSTANCE-TYPE:.metadata.labels.node\.kubernetes\.io/instance-type"
+Once all the Pods are running, let’s check the instance type of the node provisioned by Karpenter:
+```
+$ kubectl get nodeclaim
+NAME            TYPE         CAPACITY   ZONE            NODE                                             READY   AGE
+default-zqz9n   m3.2xlarge   spot       eu-central-1a   ip-10-42-121-179.eu-central-1.compute.internal   True    86s
 ```
 
 **Consolidation**:  Karpenter will optimize your cluster's compute on an on-going basis. For example, if workloads are running on under-utilized compute instances, it will consolidate them to fewer instances. Let's explore how to trigger automatic consolidation:

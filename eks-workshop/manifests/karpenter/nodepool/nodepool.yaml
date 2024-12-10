@@ -5,6 +5,7 @@ metadata:
 spec:
   template:
     metadata:
+      # Labels are are applied to all nodes
       labels:
         type: karpenter
     spec:
@@ -17,7 +18,7 @@ spec:
           values: ["linux"]
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["on-demand"]
+          values: ["on-demand", "spot"]
         - key: karpenter.k8s.aws/instance-category
           operator: In
           values: ["c", "m", "r"]
@@ -28,7 +29,7 @@ spec:
         group: karpenter.k8s.aws
         kind: EC2NodeClass
         name: default
-      expireAfter: 72h
+      expireAfter: 720h # 30 * 24h = 720h
   limits:
     cpu: 1000
     memory: 1000Gi
