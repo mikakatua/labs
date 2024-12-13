@@ -41,8 +41,9 @@ terraform -chdir=terraform destroy -auto-approve
 ## Documentation
 * [About the EKS addons](./docs/eks-addons.md)
 * [AWS Load Balancer controller](./docs/load-balancer.md)
-* [EBS and EFS CSI drivers](./docs/storage.md)
+* Storage: [EBS and EFS CSI drivers](./docs/storage.md)
 * [Cluster upgrades](./docs/managed-node-groups.md)
-* [Autoscaling](./docs/autoscaling.md)
+* Autoscaling: [Scale cluster compute](./docs/cluster-autoscaling.md)
+* Autoscaling: [Scale workloads](./docs/workload-autoscaling.md)
 
 

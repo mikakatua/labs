@@ -1,12 +1,7 @@
-# Autoscaling
-There are two main mechanisms which can be used to scale automatically:
-* **Compute**: by adjusting the number or size of EC2 worker nodes. There are two primary mechanisms available:
-  * Kubernetes Cluster Autoscaler tool
+# Cluster Compute Autoscaling
+Adjusting the number or size of EC2 worker nodes. There are two primary mechanisms available:
+  * Kubernetes Cluster Autoscaler (CA)
   * Karpenter
-* **Pods**: by scaling Pods either horizontally or vertically. There are three main mechanisms for workload autoscaling:
-  * Horizontal Pod Autoscaler (HPA)
-  * Cluster Proportional Autoscaler (CPA)
-  * Kubernetes Event-Driven Autoscaling (KEDA)
 
 ## Cluster Autoscaler (CA)
 The [Kubernetes Cluster Autoscaler](https://github.com/kubernetes/autoscaler) automatically adjusts the size of a Kubernetes cluster when one of the following conditions is true:
@@ -94,6 +89,9 @@ helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
 
 To configure Karpenter, you create [NodePools](https://karpenter.sh/docs/concepts/nodepools/) to define instance types, taints to add to provisioned nodes, node expiration, maximum amount of resources, ... Each NodePool must reference an [EC2NodeClass](https://karpenter.sh/docs/concepts/nodeclasses/) which provides the specific configuration that applies to AWS.
 
+> [!NOTE]
+> You can find some example configurations of NodePools and EC2NodeClasses for common workload scenarios in [Karpenter Blueprints for Amazon EKS](https://github.com/aws-samples/karpenter-blueprints).
+
 This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
 kubectl kustomize manifests/karpenter/nodepool \
@@ -105,27 +103,54 @@ We'll use the following Deployment to trigger Karpenter to scale out:
 kubectl apply -k manifests/karpenter/scale
 ```
 
+Scale the deployment:
+```bash
+kubectl scale -n other deployment/inflate --replicas 8
+```
+
 > [!TIP]
 > You can install [eks-node-viewer](https://github.com/awslabs/eks-node-viewer) for visualizing dynamic node usage within a cluster.
 
-Scale the deployment:
 ```bash
-kubectl scale -n other deployment/inflate --replicas 5
+eks-node-viewer --resources cpu,memory
 ```
+![eks-node-viewer](./images/eks-node-viewer.png)
 
 Once all the Pods are running, let’s check the instance type of the node provisioned by Karpenter:
 ```
 $ kubectl get nodeclaim
 NAME            TYPE         CAPACITY   ZONE            NODE                                             READY   AGE
-default-zqz9n   m3.2xlarge   spot       eu-central-1a   ip-10-42-121-179.eu-central-1.compute.internal   True    86s
+default-v4t2d   c5d.4xlarge   spot       eu-central-1b   ip-10-42-129-25.eu-central-1.compute.internal   True    8m14s
 ```
 
 **Consolidation**:  Karpenter will optimize your cluster's compute on an on-going basis. For example, if workloads are running on under-utilized compute instances, it will consolidate them to fewer instances. Let's explore how to trigger automatic consolidation:
-1. Scale the inflate workload from 5 to 12 replicas, triggering Karpenter to provision additional capacity
-1. Scale down the workload back down to 5 replicas
+1. Scale the inflate workload from 8 to 16 replicas, triggering Karpenter to provision additional capacity
+1. Scale down the workload back down to 0 replicas
 1. Observe Karpenter consolidating the compute
 
 This example shows how Karpenter can dynamically select the right instance type based on the resource requirements of the workloads.
+
+### Manual Methods
+**Node Deletion**: You can use kubectl to manually remove a single Karpenter node or nodeclaim. Since each Karpenter node is owned by a NodeClaim, deleting either the node or the nodeclaim will cause cascade deletion of the other:
+
+```bash
+# Delete a specific nodeclaim
+kubectl delete nodeclaim $NODECLAIM_NAME
+
+# Delete a specific node
+kubectl delete node $NODE_NAME
+
+# Delete all nodeclaims
+kubectl delete nodeclaims --all
+
+# Delete all nodes owned by any nodepool
+kubectl delete nodes -l karpenter.sh/nodepool
+
+# Delete all nodeclaims owned by a specific nodepoolXS
+kubectl delete nodeclaims -l karpenter.sh/nodepool=$NODEPOOL_NAME
+```
+
+**NodePool Deletion**: NodeClaims are owned by the NodePool through an owner reference that launched them. Karpenter will gracefully terminate nodes through cascading deletion when the owning NodePool is deleted.
 
 > [!NOTE]
 > For a more thorough set of hands-on exercises please see the [Karpenter Workshop](https://catalog.workshops.aws/karpenter).

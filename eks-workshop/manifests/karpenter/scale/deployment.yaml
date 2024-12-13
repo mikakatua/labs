@@ -27,5 +27,6 @@ spec:
         resources:
           requests:
             cpu: 1
+            memory: 2Gi
         securityContext:
           allowPrivilegeEscalation: false
