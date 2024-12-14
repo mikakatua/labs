@@ -1,57 +1,15 @@
+# Examples https://github.com/aws-ia/terraform-aws-eks-blueprints
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+  version = "~> 20.26"
 
   cluster_name                             = var.cluster_name
   cluster_version                          = var.cluster_version
   cluster_endpoint_public_access           = true
+
+  # Give the Terraform identity admin access to the cluster
+  # which will allow resources to be deployed into the cluster
   enable_cluster_creator_admin_permissions = true
-
-  cluster_addons = {
-    vpc-cni = {
-      before_compute = true
-      most_recent    = true
-      configuration_values = jsonencode({
-        env = {
-          ENABLE_POD_ENI                    = "true"
-          ENABLE_PREFIX_DELEGATION          = "true"
-          POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
-        }
-        nodeAgent = {
-          enablePolicyEventLogs = "true"
-        }
-        enableNetworkPolicy = "true"
-      })
-    }
-
-    snapshot-controller = {
-      # addon_version = "v8.1.0-eksbuild.2"
-      most_recent = true
-    }
-
-    aws-ebs-csi-driver = {
-      # addon_version            = "v1.37.0-eksbuild.1"
-      most_recent              = true
-      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
-      configuration_values = jsonencode({
-        defaultStorageClass = {
-          enabled = true
-        }
-      })
-    }
-
-    aws-efs-csi-driver = {
-      # addon_version            = "v2.1.0-eksbuild.1"
-      most_recent              = true
-      service_account_role_arn = module.efs_csi_driver_irsa.iam_role_arn
-    }
-
-    eks-pod-identity-agent = {
-      # addon_version            = "v1.3.4-eksbuild"
-      most_recent = true
-    }
-
-  }
 
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets

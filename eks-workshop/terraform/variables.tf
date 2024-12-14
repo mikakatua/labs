@@ -27,17 +27,35 @@ variable "vpc_cidr" {
 variable "load_balancer_controller_chart_version" {
   description = "The chart version of aws-load-balancer-controller to use"
   type        = string
-  default     = "1.10.0"
+  default     = "1.10.1"
 }
 
-variable "cluster_autoscaler_chart_version" {
-  description = "The chart version of cluster-autoscaler to use"
+variable "efs_csi_chart_version" {
+  description = "The chart version of aws-efs-csi-driver to use"
   type        = string
-  default     = "9.43.2"
+  default     = "3.1.2"
 }
+
+# variable "cluster_autoscaler_chart_version" {
+#   description = "The chart version of cluster-autoscaler to use"
+#   type        = string
+#   default     = "9.43.2"
+# }
 
 variable "karpenter_chart_version" {
   description = "The version of Karpenter to use"
   type        = string
   default     = "1.1.0"
+}
+
+variable "metrics_server_chart_version" {
+  description = "The chart version of metrics-server to use"
+  type        = string
+  default = "3.12.2"
+}
+
+variable "keda_chart_version" {
+  description = "The chart version of keda to use"
+  type        = string
+  default = "2.16.0"
 }
