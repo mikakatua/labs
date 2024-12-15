@@ -16,7 +16,7 @@ module "ebs_csi_driver_irsa" {
   tags = local.tags
 }
 
-resource "kubernetes_storage_class_v1" "gp3" {
+resource "kubernetes_storage_class" "gp3" {
   metadata {
     name = "gp3"
 
@@ -38,6 +38,13 @@ resource "kubernetes_storage_class_v1" "gp3" {
   }
 
   depends_on = [
-    module.eks_blueprints_addons
+    module.eks_blueprints_addons,
+    time_sleep.wait_for_ebs_csi_driver
   ]
+}
+
+resource "time_sleep" "wait_for_ebs_csi_driver" {
+  depends_on = [module.eks_blueprints_addons]
+
+  create_duration = "30s" # Adjust as needed to allow propagation
 }

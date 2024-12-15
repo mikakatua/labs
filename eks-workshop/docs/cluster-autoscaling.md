@@ -94,8 +94,7 @@ To configure Karpenter, you create [NodePools](https://karpenter.sh/docs/concept
 
 This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
-kubectl kustomize manifests/karpenter/nodepool \
-  | envsubst | kubectl apply -f-
+kubectl kustomize manifests/karpenter/nodepool | envsubst | kubectl apply -f-
 ```
 
 We'll use the following Deployment to trigger Karpenter to scale out:

@@ -31,7 +31,7 @@ Additions to the original base application:
 * Pod Affinity and Anti-Affinity rules to ensure the `checkout` and `checkout-redis` pods run on the desired nodes
 * Modified the `catalog` component to run on Spot instances by adding a nodeSelector
 * Updated the `checkout` deployment to increase the resources and schedule its pods on Fargate
-* Add an HPA to the `ui` deployment to scale up the number of replicas based on cpu load
+* Configure KEDA to scale the `ui` Deployment based on CloudWatch metrics
 
 ## Clean up
 ```bash

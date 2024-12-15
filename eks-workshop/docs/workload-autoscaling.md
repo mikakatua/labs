@@ -52,5 +52,48 @@ helm upgrade --install keda kedacore/keda \
   --set "podIdentity.aws.irsa.roleArn=${KEDA_ROLE_ARN}" \
   --wait
 ```
+The KEDA installs 3 key components:
+* Agent (keda-operator) - controls the scaling of the workload
+* Metrics (keda-operator-metrics-server) - acts as a Kubernetes metrics server, providing access to external metrics
+* Admission Webhooks (keda-admission-webhooks) - validates resource configuration to prevent misconfiguration
 
-KEDA creates an HPA resource to scale a Deployment or StatefulSet.
+KEDA also creates several custom resources. The `ScaledObject` enables you to map an external event source to a Deployment or StatefulSet for scaling.
+
+[This example](../manifests/keda/scaledobject.yaml) targets the `ui` Deployment and scales this workload based on the `RequestCountPerTarget` metric in CloudWatch. The `expression` uses [CloudWatch Metrics Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-metrics-insights-querylanguage.html) syntax to select your target metric.
+
+Create the `ScaledObject` in the cluster:
+```bash
+# Set environment variables from terraform outputs
+eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
+
+ALB_ARN=$(aws elbv2 describe-load-balancers --query 'LoadBalancers[?contains(LoadBalancerName, `k8s-retailappgroup`) == `true`]' | jq -r .[0].LoadBalancerArn)
+
+export ALB_ID=$(echo $ALB_ARN | awk -F "loadbalancer/" '{print $2}')
+export TARGETGROUP_ID=$(aws elbv2 describe-target-groups --load-balancer-arn $ALB_ARN | jq -r '.TargetGroups[0].TargetGroupArn' | awk -F ":" '{print $6}')
+
+kubectl kustomize manifests/keda | envsubst | kubectl apply -f-
+```
+KEDA creates an HPA resource to scale the `ui` Deployment.
+
+To observe KEDA scale the deployment we need to generate some load on our application. We'll do that by calling the home page of the workload with [hey](https://github.com/rakyll/hey).
+
+The command below will run the load generator with:
+
+* 10 workers running concurrently
+* Sending 5 queries per second each
+* Running for a maximum of 60 minutes
+
+```bash
+ALB_HOSTNAME=$(kubectl get ingress ui -n ui -o yaml | yq .status.loadBalancer.ingress[0].hostname)
+
+kubectl run load-generator \
+  --image=williamyeh/hey:latest \
+  --restart=Never -- -c 10 -q 5 -z 60m http://$ALB_HOSTNAME/home
+```
+
+Now that we have requests hitting our application we can watch the HPA resource to follow its progress:
+```bash
+kubectl get hpa keda-hpa-ui-hpa -n ui --watch
+```
+
+You can also view the load test results in the CloudWatch console.

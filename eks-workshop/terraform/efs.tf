@@ -40,6 +40,13 @@ resource "kubernetes_storage_class" "efs" {
   ]
 
   depends_on = [
-    module.eks_blueprints_addons
+    module.eks_blueprints_addons,
+    time_sleep.wait_for_efs_csi_driver
   ]
+}
+
+resource "time_sleep" "wait_for_efs_csi_driver" {
+  depends_on = [module.eks_blueprints_addons]
+
+  create_duration = "30s" # Adjust as needed to allow propagation
 }
