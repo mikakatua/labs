@@ -9,27 +9,18 @@ module "eks_blueprints_addons" {
   cluster_version   = module.eks.cluster_version
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  eks_addons = {
-    aws-ebs-csi-driver = {
-      # most_recent              = true
-      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
-    }
-    coredns = {
-      # timeouts = {
-      #   create = "25m"
-      #   delete = "10m"
-      # }
-    }
-    eks-pod-identity-agent = {}
-    kube-proxy             = {}
-    vpc-cni                = {}
-  }
-
-  enable_aws_load_balancer_controller    = true
-  enable_aws_efs_csi_driver              = true
+  enable_aws_load_balancer_controller = true
+  # enable_aws_efs_csi_driver           = true
   # enable_cluster_autoscaler              = true
-  # enable_karpenter                       = true
-  enable_metrics_server                  = true
+  # enable_karpenter      = true
+  enable_metrics_server = true
+
+  # cluster_autoscaler = {
+  #   role_name              = "${module.eks.cluster_name}-cluster-autoscaler"
+  #   role_name_use_prefix   = false
+  #   policy_name            = "${module.eks.cluster_name}-cluster-autoscaler"
+  #   policy_name_use_prefix = false
+  # }
 
   aws_load_balancer_controller = {
     chart_version = var.load_balancer_controller_chart_version
@@ -39,16 +30,21 @@ module "eks_blueprints_addons" {
     }]
   }
 
-  aws_efs_csi_driver = {
-    chart_version = var.efs_csi_chart_version
-  }
-
-  # cluster_autoscaler = {
-  #   chart_version = var.cluster_autoscaler_chart_version
-  # }
-
   # karpenter = {
   #   chart_version = var.karpenter_chart_version
+  #   wait          = true
+  #   values = [
+  #     <<-EOT
+  #     controller:
+  #       resources:
+  #         requests:
+  #           cpu: 1
+  #           memory: 1Gi
+  #         limits:
+  #           cpu: 1
+  #           memory: 1Gi
+  #     EOT
+  #   ]
   # }
 
   metrics_server = {

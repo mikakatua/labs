@@ -8,7 +8,11 @@ data "aws_eks_cluster_auth" "eks_auth" {
 }
 
 locals {
-  region = "eu-central-1"
+  account_id = data.aws_caller_identity.current.account_id
+  partition  = data.aws_partition.current.partition
+  region     = var.aws_region
+
+  iam_role_policy_prefix = "arn:${local.partition}:iam::aws:policy"
 
   tags = {
     created-by = "eks-workshop-v2"

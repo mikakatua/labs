@@ -1,30 +1,5 @@
-terraform {
-  required_version = ">= 1.4.2"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 5.80.0"
-    }
-
-    kubernetes = {
-      source = "hashicorp/kubernetes"
-      version = "2.35.0"
-    }
-
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.16.0"
-    }
-
-    # kubectl = {
-    #   source  = "gavinbunney/kubectl"
-    #   version = "~> 1.17.0"
-    # }
-  }
-}
-
 provider "aws" {
+  region = var.aws_region
   default_tags {
     tags = local.tags
   }
@@ -58,7 +33,6 @@ provider "helm" {
   }
 }
 
-/*
 provider "kubectl" {
   apply_retry_count      = 5
   host                   = module.eks.cluster_endpoint
@@ -73,4 +47,3 @@ provider "kubectl" {
   #   args = ["eks", "get-token", "--cluster-name", module.eks.cluster_name]
   # }
 }
-*/
