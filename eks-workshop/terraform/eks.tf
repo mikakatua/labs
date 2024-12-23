@@ -17,52 +17,50 @@ module "eks" {
   # create_cluster_security_group = false
   # create_node_security_group    = false
 
-  cluster_addons = {
-    vpc-cni = {
-      before_compute = true
-      most_recent    = true
-      configuration_values = jsonencode({
-        env = {
-          ENABLE_POD_ENI                    = "true"
-          ENABLE_PREFIX_DELEGATION          = "true"
-          POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
-        }
-        nodeAgent = {
-          enablePolicyEventLogs = "true"
-        }
-        enableNetworkPolicy = "true"
-      })
-    }
+  # cluster_addons = {
+  #   vpc-cni = {
+  #     before_compute = true
+  #     most_recent    = true
+  #     configuration_values = jsonencode({
+  #       env = {
+  #         ENABLE_POD_ENI                    = "true"
+  #         ENABLE_PREFIX_DELEGATION          = "true"
+  #         POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
+  #       }
+  #       nodeAgent = {
+  #         enablePolicyEventLogs = "true"
+  #       }
+  #       enableNetworkPolicy = "true"
+  #     })
+  #   }
 
-    snapshot-controller = {
-      # addon_version = "v8.1.0-eksbuild.2"
-      most_recent = true
-    }
+  #   snapshot-controller = {
+  #     # addon_version = "v8.1.0-eksbuild.2"
+  #     most_recent = true
+  #   }
 
-    aws-ebs-csi-driver = {
-      # addon_version            = "v1.37.0-eksbuild.1"
-      most_recent              = true
-      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
-      configuration_values = jsonencode({
-        defaultStorageClass = {
-          enabled = true
-        }
-      })
-    }
+  #   aws-ebs-csi-driver = {
+  #     # addon_version            = "v1.37.0-eksbuild.1"
+  #     most_recent              = true
+  #     service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+  #     configuration_values = jsonencode({
+  #       defaultStorageClass = {
+  #         enabled = true
+  #       }
+  #     })
+  #   }
 
-    aws-efs-csi-driver = {
-      # addon_version            = "v2.1.0-eksbuild.1"
-      most_recent              = true
-      service_account_role_arn = module.efs_csi_driver_irsa.iam_role_arn
-    }
+  #   aws-efs-csi-driver = {
+  #     # addon_version            = "v2.1.0-eksbuild.1"
+  #     most_recent              = true
+  #     service_account_role_arn = module.efs_csi_driver_irsa.iam_role_arn
+  #   }
 
-    eks-pod-identity-agent = {
-      # addon_version            = "v1.3.4-eksbuild"
-      most_recent = true
-      most_recent    = true
-    }
-
-  }
+  #   eks-pod-identity-agent = {
+  #     # addon_version            = "v1.3.4-eksbuild"
+  #     most_recent = true
+  #   }
+  # }
 
   eks_managed_node_groups = {
     default = {
