@@ -82,6 +82,8 @@ module "eks_blueprints_addons" {
     wait          = true
     values = [
       <<-EOT
+      nodeSelector:
+        karpenter.sh/controller: 'true'
       controller:
         resources:
           requests:
