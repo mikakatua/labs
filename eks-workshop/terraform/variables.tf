@@ -21,7 +21,7 @@ variable "cluster_version" {
 variable "ami_release_version" {
   description = "EKS AMI release version for node groups"
   type        = string
-  default     = "1.31.2-20241121"
+  default     = "1.31.3-20241213"
 }
 
 variable "vpc_cidr" {
@@ -57,11 +57,35 @@ variable "karpenter_chart_version" {
 variable "metrics_server_chart_version" {
   description = "The chart version of metrics-server to use"
   type        = string
-  default = "3.12.2"
+  default     = "3.12.2"
 }
 
 variable "keda_chart_version" {
-  description = "The chart version of keda to use"
+  description = "The chart version of KEDA to use"
   type        = string
-  default = "2.16.0"
+  default     = "2.16.0"
+}
+
+variable "aws_for_fluent_bit_chart_version" {
+  description = "The chart version of AWS for fluent bit to use"
+  type        = string
+  default     = "0.1.34"
+}
+
+variable "cert_manager_chart_version" {
+  description = "The chart version of cert-manager to use"
+  type        = string
+  default     = "v1.16.2"
+}
+
+variable "opentelemetry_operator_chart_version" {
+  description = "The chart version of OpenTelemetry Operator to use"
+  type        = string
+  default     = "0.75.1"
+}
+
+variable "grafana_chart_version" {
+  description = "The chart version of Grafana to use"
+  type        = string
+  default     = "8.8.2"
 }

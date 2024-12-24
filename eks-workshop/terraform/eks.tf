@@ -25,15 +25,15 @@ module "eks" {
       iam_role_use_name_prefix = false
 
       min_size     = 0
-      max_size     = 2
-      desired_size = 1
+      max_size     = 3
+      desired_size = 2
 
       update_config = {
         max_unavailable_percentage = 50
       }
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
 
       labels = {
@@ -53,11 +53,11 @@ module "eks" {
       iam_role_use_name_prefix = false
 
       min_size     = 0
-      max_size     = 4
-      desired_size = 2
+      max_size     = 2
+      desired_size = 1
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
 
       taints = {

@@ -25,6 +25,8 @@ module "eks_blueprints_addons" {
       most_recent              = true
       resolve_conflicts        = "OVERWRITE"
       service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+      preserve                 = false
+      # configuration_values     = jsonencode({ defaultStorageClass = { enabled = true } }) # creates a storage class named ebs-csi-default-sc
     }
     snapshot-controller = {
       # addon_version     = "v6.3.2-eksbuild.1"
@@ -34,10 +36,6 @@ module "eks_blueprints_addons" {
     vpc-cni = {
       # addon_version = "v1.15.5-eksbuild.1"
       most_recent = true
-      # preserve    = true
-      # # terraform not happy with PRESERVE
-      # resolve_conflicts        = "NONE"
-      # service_account_role_arn = "arn:aws:iam::${aws-accounts-id}:role/AmazonEKSVPCCNIRole"
       configuration_values = jsonencode({
         env = {
           ENABLE_POD_ENI                    = "true"
@@ -68,7 +66,7 @@ module "eks_blueprints_addons" {
 
   enable_aws_efs_csi_driver = true
 
-  # enable_cluster_autoscaler              = true
+  # enable_cluster_autoscaler = true
   # cluster_autoscaler = {
   #   role_name              = "${module.eks.cluster_name}-cluster-autoscaler"
   #   role_name_use_prefix   = false
@@ -87,8 +85,8 @@ module "eks_blueprints_addons" {
       controller:
         resources:
           requests:
-            cpu: 1
-            memory: 1Gi
+            cpu: 500m
+            memory: 512Mi
           limits:
             cpu: 1
             memory: 1Gi
@@ -97,14 +95,41 @@ module "eks_blueprints_addons" {
   }
   karpenter_node = {
     iam_role_additional_policies = {
-      # to allow SSM into node
-      "AmazonSSMManagedInstanceCore" = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      # to allow connect to Nodes via Session Manager
+      "AmazonSSMManagedInstanceCore" = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
     }
   }
 
   enable_metrics_server = true
   metrics_server = {
     chart_version = var.metrics_server_chart_version
+  }
+
+  enable_aws_for_fluentbit = true
+  aws_for_fluentbit = {
+    enable_containerinsights = true
+    kubelet_monitoring       = true
+    chart_version            = var.aws_for_fluent_bit_chart_version
+  }
+  aws_for_fluentbit_cw_log_group = {
+    create          = true
+    use_name_prefix = true
+    name_prefix     = "/${var.cluster_name}/worker-fluentbit-logs"
+    retention       = 7
+  }
+
+  enable_fargate_fluentbit = true
+
+  enable_cert_manager = true
+  cert_manager = {
+    chart_version = var.cert_manager_chart_version
+    wait = true
+    # set = [
+    #   {
+    #     name  = "crds.enabled"
+    #     value = true
+    #   }
+    # ]
   }
 
   tags = local.tags
