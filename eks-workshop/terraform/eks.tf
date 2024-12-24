@@ -18,15 +18,15 @@ module "eks" {
     default = {
       ami_release_version      = var.ami_release_version
       ami_type                 = "AL2023_x86_64_STANDARD"
-      instance_types           = ["t4g.medium"]
+      instance_types           = ["t3.medium"]
       force_update_version     = true
       use_name_prefix          = false
       iam_role_name            = "${var.cluster_name}-ng-default"
       iam_role_use_name_prefix = false
 
-      min_size     = 2
-      max_size     = 3
-      desired_size = 2
+      min_size     = 0
+      max_size     = 2
+      desired_size = 1
 
       update_config = {
         max_unavailable_percentage = 50
@@ -46,7 +46,7 @@ module "eks" {
     managed-spot = {
       capacity_type            = "SPOT"
       ami_type                 = "AL2023_x86_64_STANDARD"
-      instance_types           = ["t4g.medium", "t3a.medium", "t3.medium", "t2.medium","t4g.small", "t3a.small", "t3.small", "t2.small"] # Mixing instance types for spot capacity flexibility
+      instance_types           = ["t3.micro", "t3.small", "t3.medium", "m5.large"] # Mixing instance types for spot capacity flexibility
       force_update_version     = true
       use_name_prefix          = false
       iam_role_name            = "${var.cluster_name}-spot-node"
@@ -54,7 +54,7 @@ module "eks" {
 
       min_size     = 0
       max_size     = 4
-      desired_size = 1
+      desired_size = 2
 
       iam_role_additional_policies = {
         AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
