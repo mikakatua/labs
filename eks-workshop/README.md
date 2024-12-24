@@ -29,7 +29,7 @@ Additions to the original base application:
 * EBS volume to be consumed by the MySQL database from the `catalog-mysql` microservice utilizing a statefulset
 * EFS volume to store the product images for the `assets` microservice and scale the deployment to 2 replicas
 * Pod Affinity and Anti-Affinity rules to ensure the `checkout` and `checkout-redis` pods run on the desired nodes
-* Modified the `catalog` component to run on Spot instances by adding a nodeSelector
+* Modified the `catalog` component by adding a node affinity rule to run only on Spot instances
 * Updated the `checkout` deployment to increase the resources and schedule its pods on Fargate
 * Configure KEDA to scale the `ui` Deployment based on CloudWatch metrics
 

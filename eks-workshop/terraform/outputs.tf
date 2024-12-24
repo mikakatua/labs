@@ -10,8 +10,8 @@ output "environment_variables" {
     # CLUSTER_AUTOSCALER_CHART_VERSION = var.cluster_autoscaler_chart_version
     # CLUSTER_AUTOSCALER_ROLE          = module.eks_blueprints_addons.cluster_autoscaler.iam_role_arn
     KARPENTER_VERSION                = var.karpenter_chart_version
-    KARPENTER_ROLE                   = module.karpenter.node_iam_role_name
-    KARPENTER_SQS_QUEUE              = module.karpenter.queue_name
+    KARPENTER_ROLE                   = module.eks_blueprints_addons.karpenter.node_iam_role_name
+    KARPENTER_SQS_QUEUE              = module.eks_blueprints_addons.karpenter.sqs.queue_name
     KEDA_CHART_VERSION = var.keda_chart_version
     KEDA_ROLE_ARN = module.iam_assumable_role_keda.iam_role_arn
   }
