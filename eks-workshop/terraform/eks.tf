@@ -18,7 +18,7 @@ module "eks" {
     default = {
       ami_release_version      = var.ami_release_version
       ami_type                 = "AL2023_x86_64_STANDARD"
-      instance_types           = ["t3.medium"]
+      instance_types           = ["m5.large"]
       force_update_version     = true
       use_name_prefix          = false
       iam_role_name            = "${var.cluster_name}-ng-default"

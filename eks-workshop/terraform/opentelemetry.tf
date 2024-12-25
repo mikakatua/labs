@@ -15,7 +15,7 @@ resource "helm_release" "opentelemetry_operator" {
 }
 
 resource "aws_prometheus_workspace" "this" {
-  alias = var.cluster_name
+  alias = module.eks.cluster_name
 
   tags = local.tags
 }
@@ -25,7 +25,7 @@ module "iam_assumable_role_adot" {
   version = "5.44.0"
 
   create_role  = true
-  role_name    = "${var.cluster_name}-adot-collector"
+  role_name    = "${module.eks.cluster_name}-adot-collector"
   provider_url = module.eks.cluster_oidc_issuer_url
   role_policy_arns = [
     "arn:${local.partition}:iam::aws:policy/AmazonPrometheusRemoteWriteAccess"
@@ -51,7 +51,7 @@ resource "helm_release" "grafana" {
 }
 
 /* resource "aws_iam_policy" "grafana" {
-  name = "${var.cluster_name}-grafana-other"
+  name = "${module.eks.cluster_name}-grafana-other"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -86,7 +86,7 @@ module "eks_blueprints_kubernetes_grafana_irsa" {
 
 resource "aws_iam_policy" "grafana" {
   description = "IAM policy for Grafana Pod"
-  name        = "${var.cluster_name}-grafana"
+  name        = "${module.eks.cluster_name}-grafana"
   path        = "/"
   policy      = data.aws_iam_policy_document.grafana.json
 }
@@ -455,6 +455,9 @@ resource "kubernetes_config_map" "order_service_metrics_dashboard" {
 }
 EOF
   }
+  depends_on = [
+    module.eks_blueprints_kubernetes_grafana_irsa
+  ]
 }
 
 locals {

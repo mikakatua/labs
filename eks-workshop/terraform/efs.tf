@@ -3,8 +3,8 @@ module "efs" {
   source  = "terraform-aws-modules/efs/aws"
   version = "~> 1.1"
 
-  name           = "${var.cluster_name}-efs"
-  creation_token = "${var.cluster_name}-efs-token"
+  name           = "${module.eks.cluster_name}-efs"
+  creation_token = "${module.eks.cluster_name}-efs-token"
 
   # Mount targets / security group
   mount_targets = {

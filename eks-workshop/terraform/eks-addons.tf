@@ -20,6 +20,7 @@ module "eks_blueprints_addons" {
       most_recent       = true
       resolve_conflicts = "OVERWRITE"
     }
+    # (!) aws-ebs-csi-driver is long to provision (15 min)
     aws-ebs-csi-driver = {
       #addon_version            = "v1.26.0-eksbuild.1"
       most_recent              = true
@@ -39,7 +40,7 @@ module "eks_blueprints_addons" {
       configuration_values = jsonencode({
         env = {
           ENABLE_POD_ENI                    = "true"
-          ENABLE_PREFIX_DELEGATION          = "true"
+          ENABLE_PREFIX_DELEGATION          = "true" # increases the number of IP addresses available for Pods
           POD_SECURITY_GROUP_ENFORCING_MODE = "standard"
         }
         nodeAgent = {
@@ -114,7 +115,7 @@ module "eks_blueprints_addons" {
   aws_for_fluentbit_cw_log_group = {
     create          = true
     use_name_prefix = true
-    name_prefix     = "/${var.cluster_name}/worker-fluentbit-logs"
+    name_prefix     = "/${module.eks.cluster_name}/worker-fluentbit-logs"
     retention       = 7
   }
 
