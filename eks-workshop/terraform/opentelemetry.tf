@@ -7,21 +7,11 @@ resource "helm_release" "opentelemetry_operator" {
   version          = var.opentelemetry_operator_chart_version
   wait             = true
 
-  values = [
-    <<-EOT
-    manager:
-      collectorImage:
-        repository: "otel/opentelemetry-collector-k8s"
-      serviceAccount:
-        annotations:
-          eks.amazonaws.com/role-arn: ${module.iam_assumable_role_adot.iam_role_arn}
-    EOT
-  ]
-
-  depends_on = [
-    module.eks,
-    module.eks_blueprints_addons
-  ]
+  set {
+    name  = "manager.collectorImage.repository"
+    value = "otel/opentelemetry-collector-k8s"
+  }
+  depends_on = [module.eks_blueprints_addons]
 }
 
 resource "aws_prometheus_workspace" "this" {
