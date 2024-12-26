@@ -7,11 +7,21 @@ resource "helm_release" "opentelemetry_operator" {
   version          = var.opentelemetry_operator_chart_version
   wait             = true
 
-  set {
-    name  = "manager.collectorImage.repository"
-    value = "otel/opentelemetry-collector-k8s"
-  }
-  depends_on = [module.eks_blueprints_addons]
+  values = [
+    <<-EOT
+    manager:
+      collectorImage:
+        repository: "otel/opentelemetry-collector-k8s"
+      serviceAccount:
+        annotations:
+          eks.amazonaws.com/role-arn: ${module.iam_assumable_role_adot.iam_role_arn}
+    EOT
+  ]
+
+  depends_on = [
+    module.eks,
+    module.eks_blueprints_addons
+  ]
 }
 
 resource "aws_prometheus_workspace" "this" {
@@ -462,73 +472,75 @@ EOF
 
 locals {
   grafana_values = <<EOF
-serviceAccount:
-  create: false
-  name: grafana
+    adminPassword: admin
 
-env:
-  AWS_SDK_LOAD_CONFIG: true
-  GF_AUTH_SIGV4_AUTH_ENABLED: true
+    serviceAccount:
+      create: false
+      name: grafana
 
-ingress:
-  enabled: true
-  hosts: []
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-  ingressClassName: alb
+    env:
+      AWS_SDK_LOAD_CONFIG: true
+      GF_AUTH_SIGV4_AUTH_ENABLED: true
 
-datasources:
-  datasources.yaml:
-    apiVersion: 1
+    ingress:
+      enabled: true
+      hosts: []
+      annotations:
+        alb.ingress.kubernetes.io/scheme: internet-facing
+        alb.ingress.kubernetes.io/target-type: ip
+      ingressClassName: alb
+
     datasources:
-    - name: Prometheus
-      type: prometheus
-      url: ${aws_prometheus_workspace.this.prometheus_endpoint}
-      access: proxy
-      jsonData:
-        httpMethod: "POST"
-        sigV4Auth: true
-        sigV4AuthType: "default"
-        sigV4Region: ${local.region}
-      isDefault: true
+      datasources.yaml:
+        apiVersion: 1
+        datasources:
+        - name: Prometheus
+          type: prometheus
+          url: ${aws_prometheus_workspace.this.prometheus_endpoint}
+          access: proxy
+          jsonData:
+            httpMethod: "POST"
+            sigV4Auth: true
+            sigV4AuthType: "default"
+            sigV4Region: ${local.region}
+          isDefault: true
 
-dashboardProviders:
-  dashboardproviders.yaml:
-    apiVersion: 1
-    providers:
-    - name: default
-      orgId: 1
-      folder: ""
-      type: file
-      disableDeletion: false
-      editable: false
-      options:
-        path: /var/lib/grafana/dashboards/default
-    - name: orders-service
-      orgId: 1
-      folder: "retail-app-metrics"
-      type: file
-      disableDeletion: false
-      editable: false
-      options:
-        path: /var/lib/grafana/dashboards/orders-service
+    dashboardProviders:
+      dashboardproviders.yaml:
+        apiVersion: 1
+        providers:
+        - name: default
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/default
+        - name: orders-service
+          orgId: 1
+          folder: "retail-app-metrics"
+          type: file
+          disableDeletion: false
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/orders-service
 
-dashboardsConfigMaps:
-  orders-service: "order-service-metrics-dashboard"
+    dashboardsConfigMaps:
+      orders-service: "order-service-metrics-dashboard"
 
-dashboards:
-  default:
-    kubernetesCluster:
-      gnetId: 3119
-      revision: 2
-      datasource: Prometheus
+    dashboards:
+      default:
+        kubernetesCluster:
+          gnetId: 3119
+          revision: 2
+          datasource: Prometheus
 
-sidecar:
-  dashboards:
-    enabled: true
-    searchNamespace: ALL
-    label: app.kubernetes.io/component
-    labelValue: grafana
-EOF
+    sidecar:
+      dashboards:
+        enabled: true
+        searchNamespace: ALL
+        label: app.kubernetes.io/component
+        labelValue: grafana
+  EOF
 }

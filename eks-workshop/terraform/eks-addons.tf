@@ -55,7 +55,8 @@ module "eks_blueprints_addons" {
     }
   }
 
-  # External addons
+  ## External addons
+
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
     chart_version = var.load_balancer_controller_chart_version
@@ -106,31 +107,25 @@ module "eks_blueprints_addons" {
     chart_version = var.metrics_server_chart_version
   }
 
-  enable_aws_for_fluentbit = true
-  aws_for_fluentbit = {
-    enable_containerinsights = true
-    kubelet_monitoring       = true
-    chart_version            = var.aws_for_fluent_bit_chart_version
-  }
-  aws_for_fluentbit_cw_log_group = {
-    create          = true
-    use_name_prefix = true
-    name_prefix     = "/${module.eks.cluster_name}/worker-fluentbit-logs"
-    retention       = 7
-  }
+  # enable_aws_for_fluentbit = true
+  # aws_for_fluentbit = {
+  #   enable_containerinsights = true
+  #   kubelet_monitoring       = true
+  #   chart_version            = var.aws_for_fluent_bit_chart_version
+  # }
+  # aws_for_fluentbit_cw_log_group = {
+  #   create          = true
+  #   use_name_prefix = true
+  #   name_prefix     = "/${module.eks.cluster_name}/worker-fluentbit-logs"
+  #   retention       = 7
+  # }
 
-  enable_fargate_fluentbit = true
+  # enable_fargate_fluentbit = true
 
   enable_cert_manager = true
   cert_manager = {
     chart_version = var.cert_manager_chart_version
     wait = true
-    # set = [
-    #   {
-    #     name  = "crds.enabled"
-    #     value = true
-    #   }
-    # ]
   }
 
   tags = local.tags
