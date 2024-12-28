@@ -34,3 +34,6 @@ The AWS for Fluent Bit has already been deployed with Terrraform as an EKS addon
 ## Monitoring Metrics with CloudWatch Container Insights
 
 ## Monitoring EKS Metrics with AMP and ADOT
+We can collect the metrics from the application using [AWS Distro for OpenTelemetry](https://aws-otel.github.io/), store the metrics in Amazon Managed Service for Prometheus and visualize using Amazon Managed Grafana. AWS Distro for OpenTelemetry is a secure, production-ready, AWS-supported distribution of the [OpenTelemetry project](https://opentelemetry.io/).
+
+To gather the metrics from the Amazon EKS Cluster, we'll deploy a `OpenTelemetryCollector` custom resource.
