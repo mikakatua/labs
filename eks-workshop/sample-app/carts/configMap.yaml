@@ -3,6 +3,7 @@ kind: ConfigMap
 metadata:
   name: carts
 data:
+  SPRING_PROFILES_ACTIVE: dynamodb
   CARTS_DYNAMODB_TABLENAME: Items
   CARTS_DYNAMODB_CREATETABLE: "true"
   AWS_ACCESS_KEY_ID: key

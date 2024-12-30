@@ -14,12 +14,13 @@ resource "helm_release" "opentelemetry_operator" {
   depends_on = [module.eks_blueprints_addons]
 }
 
-resource "aws_prometheus_workspace" "this" {
+resource "aws_prometheus_workspace" "amp" {
   alias = module.eks.cluster_name
 
   tags = local.tags
 }
 
+# Role to allow OpenTelemetry collector send metrics to AMP
 module "iam_assumable_role_adot" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "5.44.0"
@@ -28,7 +29,7 @@ module "iam_assumable_role_adot" {
   role_name    = "${module.eks.cluster_name}-adot-collector"
   provider_url = module.eks.cluster_oidc_issuer_url
   role_policy_arns = [
-    "arn:${local.partition}:iam::aws:policy/AmazonPrometheusRemoteWriteAccess"
+    "${local.iam_role_policy_prefix}/AmazonPrometheusRemoteWriteAccess"
   ]
   oidc_fully_qualified_subjects = ["system:serviceaccount:other:adot-collector"]
 
@@ -38,77 +39,44 @@ module "iam_assumable_role_adot" {
 resource "helm_release" "grafana" {
   name             = "grafana"
   namespace        = "grafana"
-  create_namespace = false
+  create_namespace = true
   repository       = "https://grafana.github.io/helm-charts"
   chart            = "grafana"
   version          = var.grafana_chart_version
 
   values = [local.grafana_values]
   depends_on = [
-    module.eks_blueprints_kubernetes_grafana_irsa,
-    kubernetes_config_map.order_service_metrics_dashboard
+    module.eks_blueprints_addons,
+    module.iam_assumable_role_grafana
   ]
 }
 
-/* resource "aws_iam_policy" "grafana" {
-  name = "${module.eks.cluster_name}-grafana-other"
+# Role to allow Grafana query AMP metrics
+module "iam_assumable_role_grafana" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version = "5.44.0"
 
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "aps:*",
-        ]
-        Effect   = "Allow"
-        Resource = "*"
-      },
-    ]
-  })
-}
- */
-
-module "eks_blueprints_kubernetes_grafana_irsa" {
-  source                = "github.com/aws-ia/terraform-aws-eks-blueprints?ref=v4.32.1//modules/irsa"
-  eks_cluster_id        = module.eks.cluster_name
-  eks_oidc_provider_arn = module.eks.oidc_provider_arn
-
-  kubernetes_namespace              = "grafana"
-  kubernetes_service_account        = "grafana"
-  create_kubernetes_service_account = true
-
-  irsa_iam_policies = [
-    aws_iam_policy.grafana.arn
+  create_role  = true
+  role_name    = "${module.eks.cluster_name}-grafana"
+  provider_url = module.eks.cluster_oidc_issuer_url
+  role_policy_arns = [
+    "${local.iam_role_policy_prefix}/AmazonPrometheusQueryAccess"
   ]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:grafana:grafana"]
 
   tags = local.tags
-}
-
-resource "aws_iam_policy" "grafana" {
-  description = "IAM policy for Grafana Pod"
-  name        = "${module.eks.cluster_name}-grafana"
-  path        = "/"
-  policy      = data.aws_iam_policy_document.grafana.json
-}
-
-data "aws_iam_policy_document" "grafana" {
-  statement {
-    sid    = "AllowListApsWorkspaces"
-    effect = "Allow"
-    resources = ["*"]
-    actions = [
-      "aps:*"
-    ]
-  }
 }
 
 resource "kubernetes_config_map" "order_service_metrics_dashboard" {
   metadata {
     name      = "order-service-metrics-dashboard"
     namespace = "grafana"
+    annotations = {
+      grafana_folder: "retail-app-metrics"
+    }
 
     labels = {
-      grafana_dashboard = 1
+      grafana_dashboard = "1"
     }
   }
 
@@ -380,17 +348,19 @@ resource "kubernetes_config_map" "order_service_metrics_dashboard" {
 EOF
   }
   depends_on = [
-    module.eks_blueprints_kubernetes_grafana_irsa
+    helm_release.grafana
   ]
 }
 
 locals {
   grafana_values = <<EOF
-    adminPassword: admin
+    # adminPassword: admin
 
     serviceAccount:
-      create: false
+      create: true
       name: grafana
+      annotations:
+        eks.amazonaws.com/role-arn: "${module.iam_assumable_role_grafana.iam_role_arn}"
 
     env:
       AWS_SDK_LOAD_CONFIG: true
@@ -410,7 +380,7 @@ locals {
         datasources:
         - name: Prometheus
           type: prometheus
-          url: ${aws_prometheus_workspace.this.prometheus_endpoint}
+          url: "${aws_prometheus_workspace.amp.prometheus_endpoint}"
           access: proxy
           jsonData:
             httpMethod: "POST"
@@ -431,17 +401,6 @@ locals {
           editable: false
           options:
             path: /var/lib/grafana/dashboards/default
-        - name: orders-service
-          orgId: 1
-          folder: "retail-app-metrics"
-          type: file
-          disableDeletion: false
-          editable: false
-          options:
-            path: /var/lib/grafana/dashboards/orders-service
-
-    dashboardsConfigMaps:
-      orders-service: "order-service-metrics-dashboard"
 
     dashboards:
       default:
@@ -454,7 +413,10 @@ locals {
       dashboards:
         enabled: true
         searchNamespace: ALL
-        label: app.kubernetes.io/component
-        labelValue: grafana
+        label: grafana_dashboard
+        folderAnnotation: grafana_folder
+        provider:
+          allowUiUpdates: true
+          foldersFromFilesStructure: true
   EOF
 }

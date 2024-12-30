@@ -3,10 +3,13 @@ kind: Kustomization
 namespace: orders
 resources:
   - namespace.yaml
-  - secrets.yaml
+  - postgresql-secret.yaml
+  - rabbitmq-secret.yaml
   - configMap.yaml
   - serviceAccount.yaml
   - service.yaml
-  - service-mysql.yaml
+  - postgresql-service.yaml
+  - rabbitmq-service.yaml
   - deployment.yaml
-  - deployment-mysql.yaml
+  - postgresql-statefulset.yaml
+  - rabbitmq-statefulset.yaml

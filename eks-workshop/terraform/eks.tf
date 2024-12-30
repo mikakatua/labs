@@ -14,6 +14,10 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  # Fargate profiles use the cluster primary security group so these must be disabled
+  create_cluster_security_group = false
+  create_node_security_group    = false
+
   eks_managed_node_groups = {
     default = {
       ami_release_version      = var.ami_release_version
@@ -33,7 +37,7 @@ module "eks" {
       }
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "${local.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
       }
 
       labels = {
@@ -57,7 +61,7 @@ module "eks" {
       desired_size = 1
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "${local.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
       }
 
       taints = {
@@ -72,6 +76,7 @@ module "eks" {
 
   fargate_profiles = {
     checkout-profile = {
+      subnet_ids = module.vpc.private_subnets
       selectors = [
         {
           namespace = "checkout"

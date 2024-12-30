@@ -3,5 +3,6 @@ kind: ConfigMap
 metadata:
   name: orders
 data:
-  SPRING_PROFILES_ACTIVE: mysql,rabbitmq
-  SPRING_RABBITMQ_HOST: rabbitmq.rabbitmq.svc
+  RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
+  SPRING_DATASOURCE_URL: jdbc:postgresql://orders-postgresql:5432/orders
+  SPRING_RABBITMQ_ADDRESSES: amqp://orders-rabbitmq:5672

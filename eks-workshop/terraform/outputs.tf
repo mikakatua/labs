@@ -16,7 +16,7 @@ output "environment_variables" {
     KEDA_ROLE_ARN             = module.iam_assumable_role_keda.iam_role_arn
     # CLOUDWATCH_LOG_GROUP_NAME = jsondecode(module.eks_blueprints_addons.aws_for_fluentbit.values).cloudWatchLogs.logGroupName
     AWS_ACCOUNT_ID            = data.aws_caller_identity.current.account_id
-    AMP_ENDPOINT              = aws_prometheus_workspace.this.prometheus_endpoint
+    AMP_ENDPOINT              = aws_prometheus_workspace.amp.prometheus_endpoint
     ADOT_IAM_ROLE             = module.iam_assumable_role_adot.iam_role_arn
   }
 }

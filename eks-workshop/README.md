@@ -35,7 +35,8 @@ Additions to the original base application:
 
 ## Clean up
 ```bash
-kubectl delete -k sample-app
+# First delete provisioned Load balancers by the ingress ALB controller
+kubectl delete ingress -A --all
 terraform -chdir=terraform destroy -auto-approve
 ```
 
@@ -46,5 +47,5 @@ terraform -chdir=terraform destroy -auto-approve
 * [Cluster upgrades](./docs/managed-node-groups.md)
 * Autoscaling: [Scale cluster compute](./docs/cluster-autoscaling.md)
 * Autoscaling: [Scale workloads](./docs/workload-autoscaling.md)
-
+* Observability [Logging and monitoring](./docs/observability.md)
 

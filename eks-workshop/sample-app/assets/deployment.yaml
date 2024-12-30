@@ -14,10 +14,6 @@ spec:
       app.kubernetes.io/component: service
   template:
     metadata:
-      annotations:
-        prometheus.io/path: /metrics
-        prometheus.io/port: "8080"
-        prometheus.io/scrape: "true"
       labels:
         app.kubernetes.io/name: assets
         app.kubernetes.io/instance: assets
@@ -28,7 +24,7 @@ spec:
       securityContext: {}
       initContainers:
         - name: copy
-          image: "public.ecr.aws/aws-containers/retail-store-sample-assets:0.4.0"
+          image: "public.ecr.aws/aws-containers/retail-store-sample-assets:0.8.4"
           command:
             ["/bin/sh", "-c", "cp -R /usr/share/nginx/html/assets/* /efsvolume"]
           volumeMounts:
@@ -44,7 +40,7 @@ spec:
               drop:
                 - ALL
             readOnlyRootFilesystem: false
-          image: "public.ecr.aws/aws-containers/retail-store-sample-assets:0.4.0"
+          image: "public.ecr.aws/aws-containers/retail-store-sample-assets:0.8.4"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -44,7 +44,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 1000
-          image: "public.ecr.aws/aws-containers/retail-store-sample-ui:0.4.0"
+          image: "public.ecr.aws/aws-containers/retail-store-sample-ui:0.8.4"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -55,14 +55,13 @@ spec:
               path: /actuator/health/liveness
               port: 8080
             initialDelaySeconds: 45
-            periodSeconds: 20
+            periodSeconds: 3
           resources:
             limits:
-              cpu: 1000m
-              memory: 1.5Gi
+              memory: 512Mi
             requests:
-              cpu: 250m
-              memory: 1.5Gi
+              cpu: 128m
+              memory: 512Mi
           volumeMounts:
             - mountPath: /tmp
               name: tmp-volume

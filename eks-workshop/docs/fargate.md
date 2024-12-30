@@ -20,7 +20,7 @@ aws eks create-fargate-profile \
 We can confirm what resources were provisioned for our Pod from the `checkout` deployment by inspecting the annotation `CapacityProvisioned`:
 ```
 $ kubectl get pod -n checkout -l app.kubernetes.io/component=service -o json | jq -r '.items[0].metadata.annotations.CapacityProvisioned'
-1vCPU 3GB
+0.25vCPU 1GB
 ```
 
 The Fargate compute resources are dynamically provisioned for each Pod (based on the sum of the container resource limits), rounded up to the nearest Fargate configuration. That means that if we scale up the deployment replicas each of the Pods is scheduled on a separate Fargate instance.

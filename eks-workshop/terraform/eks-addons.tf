@@ -98,7 +98,7 @@ module "eks_blueprints_addons" {
   karpenter_node = {
     iam_role_additional_policies = {
       # to allow connect to Nodes via Session Manager
-      "AmazonSSMManagedInstanceCore" = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      "AmazonSSMManagedInstanceCore" = "${local.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
     }
   }
 
