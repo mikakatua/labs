@@ -68,6 +68,7 @@ module "eks_blueprints_addons" {
 
   enable_aws_efs_csi_driver = true
 
+  # DISABLED: we use Karpenter for cluster autoscaling
   # enable_cluster_autoscaler = true
   # cluster_autoscaler = {
   #   role_name              = "${module.eks.cluster_name}-cluster-autoscaler"
@@ -107,6 +108,7 @@ module "eks_blueprints_addons" {
     chart_version = var.metrics_server_chart_version
   }
 
+  # DISABLED: because CloudWatch it is too expensive!
   # enable_aws_for_fluentbit = true
   # aws_for_fluentbit = {
   #   enable_containerinsights = true

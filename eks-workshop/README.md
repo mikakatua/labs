@@ -47,5 +47,6 @@ terraform -chdir=terraform destroy -auto-approve
 * [Cluster upgrades](./docs/managed-node-groups.md)
 * Autoscaling: [Scale cluster compute](./docs/cluster-autoscaling.md)
 * Autoscaling: [Scale workloads](./docs/workload-autoscaling.md)
-* Observability [Logging and monitoring](./docs/observability.md)
+* Observability: [Logging](./docs/logging.md)
+* Observability: [Monitoring](./docs/monitoring.md)
 
