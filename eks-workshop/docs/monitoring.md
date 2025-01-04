@@ -3,6 +3,12 @@ AWS provides solutions for monitoring and alarming of EKS environments.
 * Native services: CloudWatch Container Insights
 * Open source managed services: Amazon Managed Service for Prometheus (AMP), Amazon Managed Grafana and AWS Distro for OpenTelemetry (ADOT)
 
+> [!INFO]
+> To dive deeper into AWS Observability features take a look at the [One Observability Workshop](https://catalog.workshops.aws/observability/en-US)
+
+> [!INFO]
+> Explore a set of opinionated Infrastructure as Code (IaC) modules to help you set up observability for your AWS environments in our [AWS Observability Accelerator for CDK](https://aws-observability.github.io/cdk-aws-observability-accelerator/) and [AWS Observability Accelerator for Terraform](https://aws-observability.github.io/terraform-aws-observability-accelerator/). These modules work with AWS Native services like Amazon CloudWatch and AWS managed observability services such as Amazon Managed Service for Prometheus, Amazon Managed Grafana and AWS Distro for OpenTelemetry (ADOT).
+
 ## Monitoring with AMP and ADOT
 We can collect the metrics using [AWS Distro for OpenTelemetry](https://aws-otel.github.io/), store them in Amazon Managed Service for Prometheus and visualize using Amazon Managed Grafana. AWS Distro for OpenTelemetry is a secure, production-ready, AWS-supported distribution of the [OpenTelemetry project](https://opentelemetry.io/).
 

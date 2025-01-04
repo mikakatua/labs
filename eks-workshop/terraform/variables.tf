@@ -30,6 +30,28 @@ variable "vpc_cidr" {
   default     = "10.42.0.0/16"
 }
 
+## Enable/disable Modules
+
+variable "enable_logging" {
+  description = "Enable or disable AWS for Fluent Bit to send logs to CloudWatch"
+  type        = bool
+  default     = false  # DISABLED: because CloudWatch it is too expensive!
+}
+
+variable "enable_monitoring" {
+  description = "Enable or disable AWS Distro for OpenTelemetry and Amazon Managed Service for Prometheus"
+  type        = bool
+  default     = true
+}
+
+variable "enable_kubecost" {
+  description = "Enable or disable Kubecost"
+  type        = bool
+  default     = false
+}
+
+## Helm Chart versions
+
 variable "load_balancer_controller_chart_version" {
   description = "The chart version of aws-load-balancer-controller to use"
   type        = string
@@ -42,11 +64,11 @@ variable "efs_csi_chart_version" {
   default     = "3.1.2"
 }
 
-# variable "cluster_autoscaler_chart_version" {
-#   description = "The chart version of cluster-autoscaler to use"
-#   type        = string
-#   default     = "9.43.2"
-# }
+variable "cluster_autoscaler_chart_version" {
+  description = "The chart version of cluster-autoscaler to use"
+  type        = string
+  default     = "9.43.2"
+}
 
 variable "karpenter_chart_version" {
   description = "The version of Karpenter to use"
@@ -88,4 +110,10 @@ variable "grafana_chart_version" {
   description = "The chart version of Grafana to use"
   type        = string
   default     = "8.8.2"
+}
+
+variable "kubecost_chart_version" {
+  description = "The chart version of Kubecost to use"
+  type        = string
+  default     = "2.5.1"
 }

@@ -4,20 +4,19 @@ resource "helm_release" "opentelemetry_operator" {
   create_namespace = true
   repository       = "https://open-telemetry.github.io/opentelemetry-helm-charts"
   chart            = "opentelemetry-operator"
-  version          = var.opentelemetry_operator_chart_version
+  version          = var.module_inputs.opentelemetry_operator_chart_version
   wait             = true
 
   set {
     name  = "manager.collectorImage.repository"
     value = "otel/opentelemetry-collector-k8s"
   }
-  depends_on = [module.eks_blueprints_addons]
 }
 
 resource "aws_prometheus_workspace" "amp" {
-  alias = module.eks.cluster_name
+  alias = var.module_inputs.cluster_name
 
-  tags = local.tags
+  tags = var.module_inputs.tags
 }
 
 # Role to allow OpenTelemetry collector send metrics to AMP
@@ -26,14 +25,14 @@ module "iam_assumable_role_adot" {
   version = "5.44.0"
 
   create_role  = true
-  role_name    = "${module.eks.cluster_name}-adot-collector"
-  provider_url = module.eks.cluster_oidc_issuer_url
+  role_name    = "${var.module_inputs.cluster_name}-adot-collector"
+  provider_url = var.module_inputs.cluster_oidc_issuer_url
   role_policy_arns = [
-    "${local.iam_role_policy_prefix}/AmazonPrometheusRemoteWriteAccess"
+    "${var.module_inputs.iam_role_policy_prefix}/AmazonPrometheusRemoteWriteAccess"
   ]
   oidc_fully_qualified_subjects = ["system:serviceaccount:other:adot-collector"]
 
-  tags = local.tags
+  tags = var.module_inputs.tags
 }
 
 resource "helm_release" "grafana" {
@@ -42,11 +41,10 @@ resource "helm_release" "grafana" {
   create_namespace = true
   repository       = "https://grafana.github.io/helm-charts"
   chart            = "grafana"
-  version          = var.grafana_chart_version
+  version          = var.module_inputs.grafana_chart_version
 
   values = [local.grafana_values]
   depends_on = [
-    module.eks_blueprints_addons,
     module.iam_assumable_role_grafana
   ]
 }
@@ -57,14 +55,14 @@ module "iam_assumable_role_grafana" {
   version = "5.44.0"
 
   create_role  = true
-  role_name    = "${module.eks.cluster_name}-grafana"
-  provider_url = module.eks.cluster_oidc_issuer_url
+  role_name    = "${var.module_inputs.cluster_name}-grafana"
+  provider_url = var.module_inputs.cluster_oidc_issuer_url
   role_policy_arns = [
-    "${local.iam_role_policy_prefix}/AmazonPrometheusQueryAccess"
+    "${var.module_inputs.iam_role_policy_prefix}/AmazonPrometheusQueryAccess"
   ]
   oidc_fully_qualified_subjects = ["system:serviceaccount:grafana:grafana"]
 
-  tags = local.tags
+  tags = var.module_inputs.tags
 }
 
 resource "kubernetes_config_map" "order_service_metrics_dashboard" {
@@ -386,7 +384,7 @@ locals {
             httpMethod: "POST"
             sigV4Auth: true
             sigV4AuthType: "default"
-            sigV4Region: ${local.region}
+            sigV4Region: ${var.module_inputs.region}
           isDefault: true
 
     dashboardProviders:

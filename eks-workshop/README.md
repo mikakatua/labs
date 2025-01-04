@@ -49,4 +49,5 @@ terraform -chdir=terraform destroy -auto-approve
 * Autoscaling: [Scale workloads](./docs/workload-autoscaling.md)
 * Observability: [Logging](./docs/logging.md)
 * Observability: [Monitoring](./docs/monitoring.md)
+* [Cost visibility with Kubecost](./docs/kubecost.md)
 
