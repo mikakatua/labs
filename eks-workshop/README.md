@@ -36,6 +36,7 @@ Additions to the original base application:
 ## Clean up
 ```bash
 # First delete provisioned Load balancers by the ingress ALB controller
+kubectl delete -k sample-app
 kubectl delete ingress -A --all
 terraform -chdir=terraform destroy -auto-approve
 ```

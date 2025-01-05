@@ -1,14 +1,13 @@
-
 module "iam_assumable_role_keda" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "5.44.0"
   create_role                   = true
-  role_name                     = "${module.eks.cluster_name}-keda"
-  provider_url                  = module.eks.cluster_oidc_issuer_url
-  role_policy_arns              = ["${local.iam_role_policy_prefix}/CloudWatchReadOnlyAccess"]
+  role_name                     = "${var.module_inputs.cluster_name}-keda"
+  provider_url                  = var.module_inputs.cluster_oidc_issuer_url
+  role_policy_arns              = ["${var.module_inputs.iam_role_policy_prefix}/CloudWatchReadOnlyAccess"]
   oidc_fully_qualified_subjects = ["system:serviceaccount:keda:keda-operator"]
 
-  tags = local.tags
+  tags = var.module_inputs.tags
 }
 
 resource "helm_release" "keda" {
@@ -18,7 +17,7 @@ resource "helm_release" "keda" {
   name       = "keda"
   repository = "https://kedacore.github.io/charts"
   chart      = "keda"
-  version    = var.keda_chart_version
+  version    = var.module_inputs.keda_chart_version
   wait       = true
 
   values = [
@@ -31,4 +30,3 @@ resource "helm_release" "keda" {
     EOT
   ]
 }
-

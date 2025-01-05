@@ -68,66 +68,9 @@ module "eks_blueprints_addons" {
 
   enable_aws_efs_csi_driver = true
 
-  # DISABLED: we use Karpenter for cluster autoscaling
-  # enable_cluster_autoscaler = true
-  # cluster_autoscaler = {
-  #   role_name              = "${module.eks.cluster_name}-cluster-autoscaler"
-  #   role_name_use_prefix   = false
-  #   policy_name            = "${module.eks.cluster_name}-cluster-autoscaler"
-  #   policy_name_use_prefix = false
-  # }
-
-  enable_karpenter = true
-  karpenter = {
-    chart_version = var.karpenter_chart_version
-    wait          = true
-    values = [
-      <<-EOT
-      nodeSelector:
-        karpenter.sh/controller: 'true'
-      controller:
-        resources:
-          requests:
-            cpu: 500m
-            memory: 512Mi
-          limits:
-            cpu: 1
-            memory: 1Gi
-      EOT
-    ]
-  }
-  karpenter_node = {
-    iam_role_additional_policies = {
-      # to allow connect to Nodes via Session Manager
-      "AmazonSSMManagedInstanceCore" = "${local.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
-    }
-  }
-
   enable_metrics_server = true
   metrics_server = {
     chart_version = var.metrics_server_chart_version
-  }
-
-  # DISABLED: because CloudWatch it is too expensive!
-  # enable_aws_for_fluentbit = true
-  # aws_for_fluentbit = {
-  #   enable_containerinsights = true
-  #   kubelet_monitoring       = true
-  #   chart_version            = var.aws_for_fluent_bit_chart_version
-  # }
-  # aws_for_fluentbit_cw_log_group = {
-  #   create          = true
-  #   use_name_prefix = true
-  #   name_prefix     = "/${module.eks.cluster_name}/worker-fluentbit-logs"
-  #   retention       = 7
-  # }
-
-  # enable_fargate_fluentbit = true
-
-  enable_cert_manager = true
-  cert_manager = {
-    chart_version = var.cert_manager_chart_version
-    wait = true
   }
 
   tags = local.tags

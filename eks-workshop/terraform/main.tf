@@ -122,7 +122,8 @@ module "eks" {
     }
   }
 
-  node_security_group_tags = merge(local.tags, {
+  cluster_tags = merge(local.tags, {
+    # Tag node group resources for Karpenter auto-discovery
     # NOTE - if creating multiple security groups with this module, only tag the
     # security group that Karpenter should utilize with the following tag
     # (i.e. - at most, only one security group should have this tag in your account)
@@ -177,6 +178,52 @@ module "vpc" {
 # Modules
 ################################################################################
 
+module "cluster_autoscaler" {
+  source = "./modules/auto-scaling/cluster-autoscaler"
+  count  = var.enable_cluster_autoscaler ? 1 : 0
+
+  module_inputs = {
+    cluster_name      = module.eks.cluster_name
+    cluster_endpoint  = module.eks.cluster_endpoint
+    cluster_version   = module.eks.cluster_version
+    oidc_provider_arn = module.eks.oidc_provider_arn
+
+    tags = local.tags
+  }
+}
+
+module "karpenter" {
+  source = "./modules/auto-scaling/karpenter"
+  count  = var.enable_karpenter ? 1 : 0
+
+  module_inputs = {
+    cluster_name      = module.eks.cluster_name
+    cluster_endpoint  = module.eks.cluster_endpoint
+    cluster_version   = module.eks.cluster_version
+    oidc_provider_arn = module.eks.oidc_provider_arn
+
+    karpenter_chart_version = var.karpenter_chart_version
+    iam_role_policy_prefix = local.iam_role_policy_prefix
+
+    tags = local.tags
+  }
+}
+
+module "keda" {
+  source = "./modules/auto-scaling/keda"
+  count  = var.enable_keda ? 1 : 0
+
+  module_inputs = {
+    cluster_name      = module.eks.cluster_name
+    cluster_oidc_issuer_url  = module.eks.cluster_oidc_issuer_url
+
+    keda_chart_version = var.keda_chart_version
+    iam_role_policy_prefix = local.iam_role_policy_prefix
+
+    tags = local.tags
+  }
+}
+
 module "logging" {
   source = "./modules/observability/logging"
   count  = var.enable_logging ? 1 : 0
@@ -190,6 +237,7 @@ module "logging" {
     aws_for_fluent_bit_chart_version = var.aws_for_fluent_bit_chart_version
     iam_role_policy_prefix = local.iam_role_policy_prefix
     region = local.region
+
     tags = local.tags
   }
 }
@@ -200,12 +248,17 @@ module "monitoring" {
 
   module_inputs = {
     cluster_name      = module.eks.cluster_name
+    cluster_endpoint  = module.eks.cluster_endpoint
+    cluster_version   = module.eks.cluster_version
+    oidc_provider_arn = module.eks.oidc_provider_arn
     cluster_oidc_issuer_url  = module.eks.cluster_oidc_issuer_url
 
+    cert_manager_chart_version = var.cert_manager_chart_version
     opentelemetry_operator_chart_version = var.opentelemetry_operator_chart_version
     grafana_chart_version = var.grafana_chart_version
     iam_role_policy_prefix = local.iam_role_policy_prefix
     region = local.region
+
     tags = local.tags
   }
 }

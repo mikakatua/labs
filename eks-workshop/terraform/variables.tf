@@ -32,6 +32,24 @@ variable "vpc_cidr" {
 
 ## Enable/disable Modules
 
+variable "enable_cluster_autoscaler" {
+  description = "Enable or disable Kubernetes Cluster Autoscaler"
+  type        = bool
+  default     = false  # DISABLED: we use Karpenter for cluster autoscaling
+}
+
+variable "enable_karpenter" {
+  description = "Enable or disable Karpenter"
+  type        = bool
+  default     = true
+}
+
+variable "enable_keda" {
+  description = "Enable or disable Kubernetes Event-driven Autoscaling"
+  type        = bool
+  default     = true
+}
+
 variable "enable_logging" {
   description = "Enable or disable AWS for Fluent Bit to send logs to CloudWatch"
   type        = bool

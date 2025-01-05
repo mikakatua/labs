@@ -10,10 +10,10 @@ output "environment_variables" {
     # CLUSTER_AUTOSCALER_CHART_VERSION = var.cluster_autoscaler_chart_version
     # CLUSTER_AUTOSCALER_ROLE          = module.eks_blueprints_addons.cluster_autoscaler.iam_role_arn
     KARPENTER_VERSION         = var.karpenter_chart_version
-    KARPENTER_ROLE            = module.eks_blueprints_addons.karpenter.node_iam_role_name
-    KARPENTER_SQS_QUEUE       = module.eks_blueprints_addons.karpenter.sqs.queue_name
+    KARPENTER_ROLE            = try(module.karpenter[0].karpenter_role, null)
+    KARPENTER_SQS_QUEUE       = try(module.karpenter[0].karpenter_sqs_queue, null)
     KEDA_CHART_VERSION        = var.keda_chart_version
-    KEDA_ROLE_ARN             = module.iam_assumable_role_keda.iam_role_arn
+    KEDA_ROLE_ARN             = try(module.keda[0].keda_role_arn, null)
     # CLOUDWATCH_LOG_GROUP_NAME = jsondecode(module.eks_blueprints_addons.aws_for_fluentbit.values).cloudWatchLogs.logGroupName
     AWS_ACCOUNT_ID            = data.aws_caller_identity.current.account_id
     AMP_ENDPOINT              = try(module.monitoring[0].amp_endpoint, null)

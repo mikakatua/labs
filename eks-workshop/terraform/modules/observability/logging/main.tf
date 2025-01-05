@@ -1,4 +1,4 @@
-module "aws_for_fluentbit" {
+module "aws_for_fluentbit_addon" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.19"
 
@@ -21,4 +21,6 @@ module "aws_for_fluentbit" {
   }
 
   enable_fargate_fluentbit = true
+
+  tags = var.module_inputs.tags
 }

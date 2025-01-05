@@ -1,3 +1,22 @@
+# The ADOT Operator requires cert-manager to generate a self-signed certificate for the admission webhooks
+module "cert_manager_addon" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.19"
+
+  cluster_name      = var.module_inputs.cluster_name
+  cluster_endpoint  = var.module_inputs.cluster_endpoint
+  cluster_version   = var.module_inputs.cluster_version
+  oidc_provider_arn = var.module_inputs.oidc_provider_arn
+
+  enable_cert_manager = true
+  cert_manager = {
+    chart_version = var.module_inputs.cert_manager_chart_version
+    wait = true
+  }
+
+  tags = var.module_inputs.tags
+}
+
 resource "helm_release" "opentelemetry_operator" {
   name             = "opentelemetry"
   namespace        = "opentelemetry-operator-system"
@@ -11,6 +30,9 @@ resource "helm_release" "opentelemetry_operator" {
     name  = "manager.collectorImage.repository"
     value = "otel/opentelemetry-collector-k8s"
   }
+  depends_on = [
+    module.cert_manager_addon
+  ]
 }
 
 resource "aws_prometheus_workspace" "amp" {

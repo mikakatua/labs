@@ -1,10 +1,49 @@
+module "karpenter_addon" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.19"
+
+  cluster_name      = var.module_inputs.cluster_name
+  cluster_endpoint  = var.module_inputs.cluster_endpoint
+  cluster_version   = var.module_inputs.cluster_version
+  oidc_provider_arn = var.module_inputs.oidc_provider_arn
+
+  enable_karpenter = true
+  karpenter = {
+    chart_version = var.module_inputs.karpenter_chart_version
+    wait          = true
+    values = [
+      <<-EOT
+      nodeSelector:
+        karpenter.sh/controller: 'true'
+      controller:
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 1Gi
+      EOT
+    ]
+  }
+  karpenter_node = {
+    iam_role_additional_policies = {
+      # to allow connect to Nodes via Session Manager
+      "AmazonSSMManagedInstanceCore" = "${var.module_inputs.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
+    }
+  }
+
+  tags = var.module_inputs.tags
+}
+
 # Required EKS Access Entry for Karpenter role
 # See https://github.com/aws-ia/terraform-aws-eks-blueprints-addons/issues/389
 resource "aws_eks_access_entry" "karpenter" {
-  cluster_name  = module.eks.cluster_name
-  principal_arn = module.eks_blueprints_addons.karpenter.node_iam_role_arn
+  cluster_name  = var.module_inputs.cluster_name
+  principal_arn = module.karpenter_addon.karpenter.node_iam_role_arn
   type          = "EC2_LINUX"
-  tags          = local.tags
+
+  tags          = var.module_inputs.tags
 }
 
 resource "kubectl_manifest" "karpenter_node_class" {
@@ -19,16 +58,19 @@ resource "kubectl_manifest" "karpenter_node_class" {
         # Select EKS optimized AL2023 AMIs with the latest version. This term is mutually
         # exclusive and can't be specified with other terms.
         - alias: al2023@latest
-      role: ${module.eks_blueprints_addons.karpenter.node_iam_role_name}
+      role: ${module.karpenter_addon.karpenter.node_iam_role_name}
       subnetSelectorTerms:
         - tags:
-            karpenter.sh/discovery: ${module.eks.cluster_name}
+            karpenter.sh/discovery: ${var.module_inputs.cluster_name}
       securityGroupSelectorTerms:
         - tags:
-            karpenter.sh/discovery: ${module.eks.cluster_name}
+            karpenter.sh/discovery: ${var.module_inputs.cluster_name}
       tags:
         app.kubernetes.io/created-by: eks-workshop
   YAML
+  depends_on = [
+    module.karpenter_addon
+  ]
 }
 
 resource "kubectl_manifest" "karpenter_node_pool" {
