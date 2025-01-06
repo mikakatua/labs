@@ -29,7 +29,7 @@ module "karpenter_addon" {
   karpenter_node = {
     iam_role_additional_policies = {
       # to allow connect to Nodes via Session Manager
-      "AmazonSSMManagedInstanceCore" = "${var.module_inputs.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
+      "AmazonSSMManagedInstanceCore" = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
     }
   }
 

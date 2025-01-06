@@ -1,6 +1,5 @@
 
 data "aws_caller_identity" "current" {}
-data "aws_partition" "current" {}
 # data "aws_region" "current" {}
 
 data "aws_eks_cluster_auth" "eks_auth" {
@@ -13,10 +12,7 @@ data "aws_availability_zones" "available" {
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
-  partition  = data.aws_partition.current.partition
   region     = var.aws_region
-
-  iam_role_policy_prefix = "arn:${local.partition}:iam::aws:policy"
 
   private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 3, k + 3)]
   public_subnets  = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 3, k)]
@@ -37,12 +33,11 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 20.26"
 
-  cluster_name                             = var.cluster_name
-  cluster_version                          = var.cluster_version
-  cluster_endpoint_public_access           = true
+  cluster_name                   = var.cluster_name
+  cluster_version                = var.cluster_version
+  cluster_endpoint_public_access = true
 
-  # Give the Terraform identity admin access to the cluster
-  # which will allow resources to be deployed into the cluster
+  # Adds the current caller identity as an administrator via cluster access entry
   enable_cluster_creator_admin_permissions = true
 
   vpc_id     = module.vpc.vpc_id
@@ -71,7 +66,7 @@ module "eks" {
       }
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "${local.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
 
       labels = {
@@ -95,7 +90,7 @@ module "eks" {
       desired_size = 1
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "${local.iam_role_policy_prefix}/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
 
       taints = {
@@ -122,13 +117,13 @@ module "eks" {
     }
   }
 
-  cluster_tags = merge(local.tags, {
-    # Tag node group resources for Karpenter auto-discovery
+  cluster_tags = {
+    # Tag the cluster primary security group for Karpenter auto-discovery
     # NOTE - if creating multiple security groups with this module, only tag the
     # security group that Karpenter should utilize with the following tag
     # (i.e. - at most, only one security group should have this tag in your account)
     "karpenter.sh/discovery" = var.cluster_name
-  })
+  }
 
   tags = local.tags
 }
@@ -203,9 +198,7 @@ module "karpenter" {
     oidc_provider_arn = module.eks.oidc_provider_arn
 
     karpenter_chart_version = var.karpenter_chart_version
-    iam_role_policy_prefix = local.iam_role_policy_prefix
-
-    tags = local.tags
+    tags                    = local.tags
   }
 }
 
@@ -214,13 +207,11 @@ module "keda" {
   count  = var.enable_keda ? 1 : 0
 
   module_inputs = {
-    cluster_name      = module.eks.cluster_name
-    cluster_oidc_issuer_url  = module.eks.cluster_oidc_issuer_url
+    cluster_name            = module.eks.cluster_name
+    cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
     keda_chart_version = var.keda_chart_version
-    iam_role_policy_prefix = local.iam_role_policy_prefix
-
-    tags = local.tags
+    tags               = local.tags
   }
 }
 
@@ -235,10 +226,8 @@ module "logging" {
     oidc_provider_arn = module.eks.oidc_provider_arn
 
     aws_for_fluent_bit_chart_version = var.aws_for_fluent_bit_chart_version
-    iam_role_policy_prefix = local.iam_role_policy_prefix
-    region = local.region
-
-    tags = local.tags
+    region                           = local.region
+    tags                             = local.tags
   }
 }
 
@@ -247,19 +236,17 @@ module "monitoring" {
   count  = var.enable_monitoring ? 1 : 0
 
   module_inputs = {
-    cluster_name      = module.eks.cluster_name
-    cluster_endpoint  = module.eks.cluster_endpoint
-    cluster_version   = module.eks.cluster_version
-    oidc_provider_arn = module.eks.oidc_provider_arn
-    cluster_oidc_issuer_url  = module.eks.cluster_oidc_issuer_url
+    cluster_name            = module.eks.cluster_name
+    cluster_endpoint        = module.eks.cluster_endpoint
+    cluster_version         = module.eks.cluster_version
+    oidc_provider_arn       = module.eks.oidc_provider_arn
+    cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
-    cert_manager_chart_version = var.cert_manager_chart_version
+    cert_manager_chart_version           = var.cert_manager_chart_version
     opentelemetry_operator_chart_version = var.opentelemetry_operator_chart_version
-    grafana_chart_version = var.grafana_chart_version
-    iam_role_policy_prefix = local.iam_role_policy_prefix
-    region = local.region
-
-    tags = local.tags
+    grafana_chart_version                = var.grafana_chart_version
+    region                               = local.region
+    tags                                 = local.tags
   }
 }
 
@@ -269,5 +256,15 @@ module "kubecost" {
 
   module_inputs = {
     kubecost_chart_version = var.kubecost_chart_version
+  }
+}
+
+module "access_entries" {
+  source = "./modules/security/access-entries"
+
+  module_inputs = {
+    cluster_name = module.eks.cluster_name
+    account_id   = local.account_id
+    tags         = local.tags
   }
 }

@@ -35,9 +35,8 @@ Additions to the original base application:
 
 ## Clean up
 ```bash
-# First delete provisioned Load balancers by the ingress ALB controller
 kubectl delete -k sample-app
-kubectl delete ingress -A --all
+kubectl delete ingress -A --all # delete any remaining Load balancers provisioned by the ingress ALB controller
 terraform -chdir=terraform destroy -auto-approve
 ```
 
@@ -46,9 +45,10 @@ terraform -chdir=terraform destroy -auto-approve
 * [AWS Load Balancer controller](./docs/load-balancer.md)
 * Storage: [EBS and EFS CSI drivers](./docs/storage.md)
 * [Cluster upgrades](./docs/managed-node-groups.md)
-* Autoscaling: [Scale cluster compute](./docs/cluster-autoscaling.md)
-* Autoscaling: [Scale workloads](./docs/workload-autoscaling.md)
-* Observability: [Logging](./docs/logging.md)
-* Observability: [Monitoring](./docs/monitoring.md)
-* [Cost visibility with Kubecost](./docs/kubecost.md)
+* Autoscaling: [Scale cluster compute](./docs/auto-scaling/cluster-autoscaling.md)
+* Autoscaling: [Scale workloads](./docs/auto-scaling/workload-autoscaling.md)
+* Observability: [Logging](./docs/observability/logging.md)
+* Observability: [Monitoring](./docs/observability/monitoring.md)
+* [Cost visibility with Kubecost](./docs/observability/kubecost.md)
+* Security: [Cluster Acces Management](./docs/security/cluster-access.md)
 

@@ -59,7 +59,7 @@ variable "enable_logging" {
 variable "enable_monitoring" {
   description = "Enable or disable AWS Distro for OpenTelemetry and Amazon Managed Service for Prometheus"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "enable_kubecost" {
