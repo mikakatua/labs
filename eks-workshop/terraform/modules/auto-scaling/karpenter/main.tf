@@ -53,11 +53,9 @@ resource "kubectl_manifest" "karpenter_node_class" {
     metadata:
       name: default
     spec:
-      amiFamily: AL2023
       amiSelectorTerms:
-        # Select EKS optimized AL2023 AMIs with the latest version. This term is mutually
-        # exclusive and can't be specified with other terms.
-        - alias: al2023@latest
+        # Select EKS optimized AL2023 AMIs with specific version
+        - alias: al2023@v20241031
       role: ${module.karpenter_addon.karpenter.node_iam_role_name}
       subnetSelectorTerms:
         - tags:
@@ -89,13 +87,13 @@ resource "kubectl_manifest" "karpenter_node_pool" {
           requirements:
             - key: kubernetes.io/arch
               operator: In
-              values: ["amd64"]
+              values: ["arm64"]
             - key: kubernetes.io/os
               operator: In
               values: ["linux"]
             - key: karpenter.sh/capacity-type
               operator: In
-              values: ["on-demand", "spot"]
+              values: ["spot", "on-demand"]
             - key: karpenter.k8s.aws/instance-category
               operator: In
               values: ["c", "m", "r"]

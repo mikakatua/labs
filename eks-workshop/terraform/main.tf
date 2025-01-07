@@ -50,8 +50,8 @@ module "eks" {
   eks_managed_node_groups = {
     default = {
       ami_release_version      = var.ami_release_version
-      ami_type                 = "AL2023_x86_64_STANDARD"
-      instance_types           = ["t3.medium"]
+      ami_type                 = "AL2023_ARM_64_STANDARD"
+      instance_types           = ["t4g.medium"] # ARM64 architecture (Graviton)
       force_update_version     = true
       use_name_prefix          = false
       iam_role_name            = "${var.cluster_name}-ng-default"
@@ -78,8 +78,8 @@ module "eks" {
 
     managed-spot = {
       capacity_type            = "SPOT"
-      ami_type                 = "AL2023_x86_64_STANDARD"
-      instance_types           = ["t3.small", "t3.medium", "m5.large"] # Mixing instance types for spot capacity flexibility
+      ami_type                 = "AL2023_ARM_64_STANDARD"
+      instance_types           = ["t4g.small", "t4g.medium", "m6g.medium", "m6g.large"] # Mixing instance types for spot capacity flexibility
       force_update_version     = true
       use_name_prefix          = false
       iam_role_name            = "${var.cluster_name}-spot-node"
@@ -103,6 +103,8 @@ module "eks" {
     }
   }
 
+  # Graviton arch isn't supported on EKS Fargate currently
+  # https://github.com/aws/containers-roadmap/issues/1629
   fargate_profiles = {
     checkout-profile = {
       subnet_ids = module.vpc.private_subnets
