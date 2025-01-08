@@ -55,7 +55,8 @@ resource "kubectl_manifest" "karpenter_node_class" {
     spec:
       amiSelectorTerms:
         # Select EKS optimized AL2023 AMIs with specific version
-        - alias: al2023@v20241031
+        # https://github.com/awslabs/amazon-eks-ami/releases
+        - alias: al2023@v20241225
       role: ${module.karpenter_addon.karpenter.node_iam_role_name}
       subnetSelectorTerms:
         - tags:
@@ -87,7 +88,7 @@ resource "kubectl_manifest" "karpenter_node_pool" {
           requirements:
             - key: kubernetes.io/arch
               operator: In
-              values: ["arm64"]
+              values: ["arm64", "amd4"]
             - key: kubernetes.io/os
               operator: In
               values: ["linux"]

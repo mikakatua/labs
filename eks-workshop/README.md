@@ -14,7 +14,7 @@ terraform -chdir=terraform apply -auto-approve
 
 ### Update the kubeconfig file
 ```bash
-aws eks update-kubeconfig --name eks-workshop
+aws eks update-kubeconfig --name eks-workshop --alias default
 ```
 
 ## Deploy the application

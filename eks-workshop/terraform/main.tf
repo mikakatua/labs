@@ -19,7 +19,7 @@ locals {
   azs             = slice(data.aws_availability_zones.available.names, 0, 3)
 
   tags = {
-    created-by = "eks-workshop-v2"
+    created-by = "eks-workshop"
     env        = var.cluster_name
   }
 }

@@ -40,7 +40,7 @@ resource "aws_iam_role" "eks_admins" {
   tags               = var.module_inputs.tags
 }
 
-## Access entries
+## Read-only access entry
 
 resource "aws_eks_access_entry" "read_only_access" {
   cluster_name  = var.module_inputs.cluster_name
@@ -57,4 +57,45 @@ resource "aws_eks_access_policy_association" "view_policy" {
   access_scope {
     type = "cluster" # Valid values are namespace or cluster
   }
+}
+
+## Developer access entry
+
+resource "aws_eks_access_entry" "developer_access" {
+  cluster_name  = var.module_inputs.cluster_name
+  principal_arn = aws_iam_role.eks_developers.arn
+  type          = "STANDARD"
+  tags          = var.module_inputs.tags
+}
+
+resource "aws_eks_access_policy_association" "view_policy_carts" {
+  cluster_name  = var.module_inputs.cluster_name
+  principal_arn = aws_eks_access_entry.developer_access.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+
+  access_scope {
+    type       = "namespace"
+    namespaces = ["carts"]
+  }
+}
+
+resource "aws_eks_access_policy_association" "edit_policy_assets" {
+  cluster_name  = var.module_inputs.cluster_name
+  principal_arn = aws_eks_access_entry.developer_access.principal_arn
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+
+  access_scope {
+    type       = "namespace"
+    namespaces = ["assets"]
+  }
+}
+
+## Carts Team access entry
+
+resource "aws_eks_access_entry" "carts_team_access" {
+  cluster_name  = var.module_inputs.cluster_name
+  principal_arn = aws_iam_role.eks_carts_team.arn
+  kubernetes_groups = ["carts-team"]
+  type          = "STANDARD"
+  tags          = var.module_inputs.tags
 }
