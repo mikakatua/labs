@@ -27,9 +27,6 @@ When Amazon releases a new AMI version, it does not automatically update the AMI
 
 You can initiate an update of an existing managed node group like so:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 aws eks update-nodegroup-version --cluster-name $EKS_CLUSTER_NAME --nodegroup-name $EKS_DEFAULT_MNG_NAME
 ```
 By default, the latest available AMI version for the node group's Kubernetes version is used.

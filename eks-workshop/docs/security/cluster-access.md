@@ -25,9 +25,6 @@ Switching across these authentication modes is a one-way operation — i.e., you
 
 You can check which method your cluster is configured with the command:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 aws eks describe-cluster --name $EKS_CLUSTER_NAME --query 'cluster.accessConfig'
 ```
 

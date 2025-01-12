@@ -39,4 +39,8 @@ resource "kubernetes_storage_class" "gp3" {
     fsType    = "ext4"
     type      = "gp3"
   }
+
+  depends_on = [
+    time_sleep.wait_cluster_ready
+  ]
 }

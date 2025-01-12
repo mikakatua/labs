@@ -68,6 +68,13 @@ variable "enable_kubecost" {
   default     = false
 }
 
+variable "dynamodb_service_access" {
+  description = "Define how to access AWS DynamoDB service: irsa or pod-identity"
+  type        = string
+  # default     = "irsa"
+  default     = "pod-identity"
+}
+
 ## Helm Chart versions
 
 variable "load_balancer_controller_chart_version" {

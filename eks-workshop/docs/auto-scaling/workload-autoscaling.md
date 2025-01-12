@@ -40,9 +40,6 @@ Unlike other autoscalers CPA does not rely on the Metrics API and does not requi
 
 This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 helm repo add kedacore https://kedacore.github.io/charts
 helm upgrade --install keda kedacore/keda \
   --version "${KEDA_CHART_VERSION}" \
@@ -63,9 +60,6 @@ KEDA also creates several custom resources. The `ScaledObject` enables you to ma
 
 Create the `ScaledObject` in the cluster:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 ALB_ARN=$(aws elbv2 describe-load-balancers --query 'LoadBalancers[?contains(LoadBalancerName, `k8s-retailappgroup`) == `true`]' | jq -r .[0].LoadBalancerArn)
 
 export ALB_ID=$(echo $ALB_ARN | awk -F "loadbalancer/" '{print $2}')

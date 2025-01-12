@@ -15,9 +15,6 @@ We can collect the metrics using [AWS Distro for OpenTelemetry](https://aws-otel
 To gather the metrics from the Amazon EKS Cluster, we'll deploy a `OpenTelemetryCollector` custom resource.
 
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 kubectl kustomize manifests/observability/opentelemetry | envsubst | k apply -f -
 ```
 This collector is configured to run as a Deployment with one collector agent

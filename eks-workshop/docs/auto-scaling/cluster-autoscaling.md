@@ -13,9 +13,6 @@ An IAM role has already been created to provide Cluster Autoscaler the ability t
 
 Install cluster-autoscaler as a helm chart:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 helm repo add autoscaler https://kubernetes.github.io/autoscaler
 helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler \
   --version "${CLUSTER_AUTOSCALER_CHART_VERSION}" \
@@ -72,9 +69,6 @@ Karpenter must know which subnets and security groups to use when creating EKS i
 
 This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 helm upgrade --install karpenter oci://public.ecr.aws/karpenter/karpenter \
   --version ${KARPENTER_VERSION} \
   --namespace karpenter --create-namespace \

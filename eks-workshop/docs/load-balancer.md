@@ -35,9 +35,6 @@ There are several reasons why we might want to configure the ELB to operate in I
 ## Install the AWS Load Balancer controller
 This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 helm repo add eks-charts https://aws.github.io/eks-charts
 helm upgrade --install aws-load-balancer-controller eks-charts/aws-load-balancer-controller \
   --version "${LBC_CHART_VERSION}" \

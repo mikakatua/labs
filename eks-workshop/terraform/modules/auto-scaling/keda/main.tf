@@ -4,7 +4,7 @@ module "iam_assumable_role_keda" {
   create_role                   = true
   role_name                     = "${var.module_inputs.cluster_name}-keda"
   provider_url                  = var.module_inputs.cluster_oidc_issuer_url
-  role_policy_arns              = ["arn:aws:iam::aws:policy/CloudWatchReadOnlyAccess"]
+  role_policy_arns              = ["arn:${var.module_inputs.partition}:iam::aws:policy/CloudWatchReadOnlyAccess"]
   oidc_fully_qualified_subjects = ["system:serviceaccount:keda:keda-operator"]
 
   tags = var.module_inputs.tags

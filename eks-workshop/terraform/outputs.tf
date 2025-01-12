@@ -22,6 +22,8 @@ output "environment_variables" {
     CARTS_TEAM_IAM_ROLE              = module.access_entries.carts_team_iam_role
     DEVELOPERS_IAM_ROLE              = module.access_entries.developers_iam_role
     ADMINS_IAM_ROLE                  = module.access_entries.admins_iam_role
+    CARTS_DYNAMODB_TABLENAME         = module.dynamodb_access.carts_dynamodb_tablename
+    CARTS_IAM_ROLE                   = module.dynamodb_access.carts_iam_role
   }
 }
 

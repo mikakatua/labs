@@ -1,5 +1,6 @@
 
 data "aws_caller_identity" "current" {}
+data "aws_partition" "current" {}
 # data "aws_region" "current" {}
 
 data "aws_eks_cluster_auth" "eks_auth" {
@@ -12,6 +13,7 @@ data "aws_availability_zones" "available" {
 
 locals {
   account_id = data.aws_caller_identity.current.account_id
+  partition  = data.aws_partition.current.partition
   region     = var.aws_region
 
   private_subnets = [for k, v in local.azs : cidrsubnet(var.vpc_cidr, 3, k + 3)]
@@ -66,7 +68,7 @@ module "eks" {
       }
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
 
       labels = {
@@ -90,7 +92,7 @@ module "eks" {
       desired_size = 1
 
       iam_role_additional_policies = {
-        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+        AmazonSSMManagedInstanceCore = "arn:${local.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
       }
 
       taints = {
@@ -128,6 +130,16 @@ module "eks" {
   }
 
   tags = local.tags
+}
+
+
+resource "time_sleep" "wait_cluster_ready" {
+  create_duration = "2m"
+
+  depends_on = [
+    module.eks,
+    module.eks_blueprints_addons
+  ]
 }
 
 ################################################################################
@@ -200,6 +212,7 @@ module "karpenter" {
     oidc_provider_arn = module.eks.oidc_provider_arn
 
     karpenter_chart_version = var.karpenter_chart_version
+    partition               = local.partition
     tags                    = local.tags
   }
 }
@@ -213,6 +226,7 @@ module "keda" {
     cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
 
     keda_chart_version = var.keda_chart_version
+    partition          = local.partition
     tags               = local.tags
   }
 }
@@ -247,6 +261,7 @@ module "monitoring" {
     cert_manager_chart_version           = var.cert_manager_chart_version
     opentelemetry_operator_chart_version = var.opentelemetry_operator_chart_version
     grafana_chart_version                = var.grafana_chart_version
+    partition                            = local.partition
     region                               = local.region
     tags                                 = local.tags
   }
@@ -267,6 +282,26 @@ module "access_entries" {
   module_inputs = {
     cluster_name = module.eks.cluster_name
     account_id   = local.account_id
+    partition    = local.partition
     tags         = local.tags
+  }
+}
+
+module "dynamodb_access" {
+  source = "./modules/security/dynamodb-access"
+
+  module_inputs = {
+    dynamodb_access = var.dynamodb_service_access
+
+    cluster_name            = module.eks.cluster_name
+    cluster_endpoint        = module.eks.cluster_endpoint
+    cluster_version         = module.eks.cluster_version
+    oidc_provider_arn       = module.eks.oidc_provider_arn
+    cluster_oidc_issuer_url = module.eks.cluster_oidc_issuer_url
+
+    account_id = local.account_id
+    partition  = local.partition
+    region     = local.region
+    tags       = local.tags
   }
 }

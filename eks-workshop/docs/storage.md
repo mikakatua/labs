@@ -59,8 +59,5 @@ Create a StorageClass object configured to use our pre-provisioned EFS file syst
 
 This has been already deployed by Terraform. You can also deploy it manually:
 ```bash
-# Set environment variables from terraform outputs
-eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
-
 kubectl kustomize manifests/efs-storageclass | envsubst | kubectl apply -f-
 ```

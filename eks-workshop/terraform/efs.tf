@@ -39,4 +39,7 @@ resource "kubernetes_storage_class" "efs" {
     "iam"
   ]
 
+  depends_on = [
+    time_sleep.wait_cluster_ready
+  ]
 }

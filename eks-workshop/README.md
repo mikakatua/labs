@@ -20,7 +20,10 @@ aws eks update-kubeconfig --name eks-workshop --alias default
 ## Deploy the application
 You can find the full source code for the sample application on [GitHub](https://github.com/aws-containers/retail-store-sample-app).
 ```bash
-kubectl apply -k sample-app
+# Set environment variables from terraform outputs
+eval $(terraform -chdir=terraform output -json environment_variables | jq -r 'to_entries | .[] | "export \(.key)=\"\(.value)\""')
+
+kubectl kustomize sample-app | envsubst | kubectl apply -f -
 kubectl get all -l app.kubernetes.io/created-by=eks-workshop -A
 ```
 
@@ -32,11 +35,13 @@ Additions to the original base application:
 * Modified the `catalog` component by adding a node affinity rule to run only on Spot instances
 * Updated the `checkout` deployment to increase the resources and schedule its pods on Fargate
 * Configure KEDA to scale the `ui` Deployment based on CloudWatch metrics
+* Migrate the `carts` component to use the fully managed Amazon DynamoDB (leveraging EKS Pod Identity)
 
 ## Clean up
 ```bash
 kubectl delete -k sample-app
 kubectl delete ingress -A --all # delete any remaining Load balancers provisioned by the ingress ALB controller
+aws dynamodb delete-table --table-name $CARTS_DYNAMODB_TABLENAME
 terraform -chdir=terraform destroy -auto-approve
 ```
 
@@ -50,5 +55,6 @@ terraform -chdir=terraform destroy -auto-approve
 * Observability: [Logging](./docs/observability/logging.md)
 * Observability: [Monitoring](./docs/observability/monitoring.md)
 * [Cost visibility with Kubecost](./docs/observability/kubecost.md)
-* Security: [Cluster Acces Management](./docs/security/cluster-access.md)
+* Security: [Cluster Access Management](./docs/security/cluster-access.md)
+* Security: [Accessing AWS Services](./docs/security/service-access.md)
 

@@ -7,7 +7,7 @@ data "aws_iam_policy_document" "assume_role" {
     # The "root" signifies any principal (user or role) within the specified AWS account.
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::${var.module_inputs.account_id}:root"]
+      identifiers = ["arn:${var.module_inputs.partition}:iam::${var.module_inputs.account_id}:root"]
     }
   }
 }
@@ -52,7 +52,7 @@ resource "aws_eks_access_entry" "read_only_access" {
 resource "aws_eks_access_policy_association" "view_policy" {
   cluster_name  = var.module_inputs.cluster_name
   principal_arn = aws_eks_access_entry.read_only_access.principal_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+  policy_arn    = "arn:${var.module_inputs.partition}:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
 
   access_scope {
     type = "cluster" # Valid values are namespace or cluster
@@ -71,7 +71,7 @@ resource "aws_eks_access_entry" "developer_access" {
 resource "aws_eks_access_policy_association" "view_policy_carts" {
   cluster_name  = var.module_inputs.cluster_name
   principal_arn = aws_eks_access_entry.developer_access.principal_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
+  policy_arn    = "arn:${var.module_inputs.partition}:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
 
   access_scope {
     type       = "namespace"
@@ -82,7 +82,7 @@ resource "aws_eks_access_policy_association" "view_policy_carts" {
 resource "aws_eks_access_policy_association" "edit_policy_assets" {
   cluster_name  = var.module_inputs.cluster_name
   principal_arn = aws_eks_access_entry.developer_access.principal_arn
-  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
+  policy_arn    = "arn:${var.module_inputs.partition}:eks::aws:cluster-access-policy/AmazonEKSEditPolicy"
 
   access_scope {
     type       = "namespace"
