@@ -6,7 +6,7 @@ output "environment_variables" {
     EKS_DEFAULT_MNG_NAME             = keys(module.eks.eks_managed_node_groups)[0]
     LBC_CHART_VERSION                = var.load_balancer_controller_chart_version
     LBC_ROLE_ARN                     = module.eks_blueprints_addons.aws_load_balancer_controller.iam_role_arn
-    EFS_ID                           = module.efs.id
+    EFS_ID                           = module.efs_csi_driver.efs_id
     CLUSTER_AUTOSCALER_CHART_VERSION = var.cluster_autoscaler_chart_version
     CLUSTER_AUTOSCALER_ROLE          = try(module.cluster_autoscaler[0].cluster_autoscaler_role, null)
     KARPENTER_VERSION                = var.karpenter_chart_version

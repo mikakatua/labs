@@ -2,6 +2,26 @@ locals {
   dynamodb_table = "${var.module_inputs.cluster_name}-carts"
 }
 
+module "eks_blueprints_addons" {
+  source  = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.19"
+  count   = var.module_inputs.dynamodb_access == "pod-identity" ? 1 : 0
+
+  cluster_name      = var.module_inputs.cluster_name
+  cluster_endpoint  = var.module_inputs.cluster_endpoint
+  cluster_version   = var.module_inputs.cluster_version
+  oidc_provider_arn = var.module_inputs.oidc_provider_arn
+
+  eks_addons = {
+    eks-pod-identity-agent = {
+      # addon_version            = "v1.3.4-eksbuild"
+      most_recent = true
+    }
+  }
+
+  tags = var.module_inputs.tags
+}
+
 module "iam_assumable_role_carts_irsa" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version = "5.44.0"
@@ -33,12 +53,12 @@ module "iam_assumable_role_carts_pia" {
 
 # Associate an AWS IAM role to the Service Account that will be used by the carts Pods
 resource "aws_eks_pod_identity_association" "carts_dynamo" {
-  count   = var.module_inputs.dynamodb_access == "pod-identity" ? 1 : 0
+  count = var.module_inputs.dynamodb_access == "pod-identity" ? 1 : 0
 
-  cluster_name  = var.module_inputs.cluster_name
-  namespace     = "carts"
+  cluster_name    = var.module_inputs.cluster_name
+  namespace       = "carts"
   service_account = "carts"
-  role_arn      = "arn:aws:iam::${var.module_inputs.account_id}:role/${var.module_inputs.cluster_name}-carts-dynamo-pia"
+  role_arn        = "arn:aws:iam::${var.module_inputs.account_id}:role/${var.module_inputs.cluster_name}-carts-dynamo-pia"
 }
 
 resource "aws_iam_policy" "carts_dynamo" {

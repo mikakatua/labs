@@ -132,16 +132,6 @@ module "eks" {
   tags = local.tags
 }
 
-
-resource "time_sleep" "wait_cluster_ready" {
-  create_duration = "2m"
-
-  depends_on = [
-    module.eks,
-    module.eks_blueprints_addons
-  ]
-}
-
 ################################################################################
 # VPC
 ################################################################################
@@ -186,6 +176,36 @@ module "vpc" {
 ################################################################################
 # Modules
 ################################################################################
+
+module "ebs_csi_driver" {
+  source = "./modules/storage/ebs-csi-driver"
+
+  module_inputs = {
+    cluster_name      = module.eks.cluster_name
+    cluster_endpoint  = module.eks.cluster_endpoint
+    cluster_version   = module.eks.cluster_version
+    oidc_provider_arn = module.eks.oidc_provider_arn
+
+    tags = local.tags
+  }
+}
+
+module "efs_csi_driver" {
+  source = "./modules/storage/efs-csi-driver"
+
+  module_inputs = {
+    cluster_name      = module.eks.cluster_name
+    cluster_endpoint  = module.eks.cluster_endpoint
+    cluster_version   = module.eks.cluster_version
+    oidc_provider_arn = module.eks.oidc_provider_arn
+
+    efs_csi_chart_version       = var.efs_csi_chart_version
+    azs_private_subnets         = zipmap(local.azs, module.vpc.private_subnets)
+    vpc_id                      = module.vpc.vpc_id
+    private_subnets_cidr_blocks = module.vpc.private_subnets_cidr_blocks
+    tags                        = local.tags
+  }
+}
 
 module "cluster_autoscaler" {
   source = "./modules/auto-scaling/cluster-autoscaler"
