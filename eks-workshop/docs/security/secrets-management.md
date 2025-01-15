@@ -4,11 +4,6 @@ Kubernetes obfuscate sensitive data in a Secret by using a merely base64 encodin
 * [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/intro.html) and [Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
 * [Sealed Secrets for Kubernetes](https://github.com/bitnami-labs/sealed-secrets)
 
-Currently, the catalog Deployment accesses database credentials from the catalog-db secret via environment variables:
-
-DB_USER
-DB_PASSWORD
-
 ## AWS Secrets Manager
 AWS Secrets Manager is a service that enables you to easily rotate, manage, and retrieve sensitive data including credentials, API keys, and certificates. The [AWS Secrets and Configuration Provider (ASCP)](https://github.com/aws/secrets-store-csi-driver-provider-aws) for the [Secrets Store CSI Driver](https://github.com/kubernetes-sigs/secrets-store-csi-driver) allows you to make secrets stored in Secrets Manager and parameters stored in Systems Manager Parameter Store appear as files mounted in Kubernetes pods.
 
@@ -16,8 +11,49 @@ ASCP allows workloads running on Amazon EKS to access secrets stored in Secrets 
 
 An alternative approach for integrating AWS Secrets Manager with Kubernetes is through [External Secrets Operator](https://external-secrets.io/). This operator synchronizes secrets from AWS Secrets Manager into Kubernetes Secrets, managing the entire lifecycle through an abstraction layer. It automatically injects values from Secrets Manager into Kubernetes Secrets.
 
+
+Currently, the catalog Deployment accesses database credentials from the `catalog-db` secret via the environment variables `DB_USER` and `DB_PASSWORD`. We will store the credentials in AWS Secrets Manager. This has already been created with Terraform:
+
+```bash
+aws secretsmanager create-secret --name "eks-workshop/catalog-secret" \
+  --secret-string '{"username":"catalog_user", "password":"default_password"}'
+```
+
 ### AWS Secrets and Configuration Provider (ASCP)
-We'll mount the AWS Secrets Manager secret using the CSI driver with the SecretProviderClass we validated earlier at the /etc/catalog-secret mountPath inside the Pod. This will trigger AWS Secrets Manager to synchronize the stored secret contents with Amazon EKS and create a Kubernetes Secret that can be consumed as environment variables in the Pod.
+To provide access to secrets stored in AWS Secrets Manager via the CSI driver, you'll need a `SecretProviderClass` - a namespaced custom resource that specifies how to create and sync a Kubernetes secret with data from the AWS Secrets Manager secret.
+
+The following command creates a `SecretProviderClass` to sync the secret from AWS Secrets Manager (`eks-workshop/catalog-secret`) into the Kubernetes Secret (`catalog-db`):
+
+```bash
+envsubst <<EOF | kubectl create -f -
+apiVersion: secrets-store.csi.x-k8s.io/v1
+kind: SecretProviderClass
+metadata:
+  name: catalog-spc
+  namespace: catalog
+spec:
+  provider: aws
+  parameters:
+    objects: |
+      - objectName: "$CATALOG_SECRET_NAME"
+        objectType: "secretsmanager"
+  secretObjects:
+    - secretName: catalog-db
+      type: Opaque
+      data:
+        - objectName: username
+          key: username
+        - objectName: password
+          key: password
+EOF
+```
+
+Another option is to mount the AWS Secrets Manager secret using the CSI driver at `/mnt/catalog-secret` inside the Pod. This will trigger AWS Secrets Manager to synchronize the stored secret contents with Amazon EKS and create a Kubernetes Secret that can be consumed as environment variables in the Pod. This requires to update the `catalog` deployment as follows:
+
+
+
+> ![NOTE]
+> The Secrets Store CSI Driver will sync secrets from AWS Secrets Manager into the pod as files (not directly as environment variables).
 
 ### External Secrets Operator (ESO)
 The goal of External Secrets Operator is to synchronize secrets from external APIs (like AWS Secrets Manager) into Kubernetes. ESO is a collection of CRDs - `ExternalSecret`, `SecretStore` and `ClusterSecretStore` that provide a user-friendly abstraction for the external API that stores and manages the lifecycle of the secrets for you.

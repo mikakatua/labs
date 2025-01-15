@@ -2,7 +2,7 @@ locals {
   dynamodb_table = "${var.module_inputs.cluster_name}-carts"
 }
 
-module "eks_blueprints_addons" {
+module "pod_identity_agent_addon" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.19"
   count   = var.module_inputs.dynamodb_access == "pod-identity" ? 1 : 0

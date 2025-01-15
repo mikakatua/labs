@@ -11,7 +11,7 @@ module "cert_manager_addon" {
   enable_cert_manager = true
   cert_manager = {
     chart_version = var.module_inputs.cert_manager_chart_version
-    wait = true
+    wait          = true
   }
 
   tags = var.module_inputs.tags
@@ -92,7 +92,7 @@ resource "kubernetes_config_map" "order_service_metrics_dashboard" {
     name      = "order-service-metrics-dashboard"
     namespace = "grafana"
     annotations = {
-      grafana_folder: "retail-app-metrics"
+      grafana_folder : "retail-app-metrics"
     }
 
     labels = {

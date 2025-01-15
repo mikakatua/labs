@@ -13,8 +13,8 @@ resource "helm_release" "kubecost" {
   wait       = true
 
   values = [
-    data.http.kubecost_eks_values.response_body,  # Use downloaded YAML content
-    file("${path.module}/values.yaml")  # Local values override
+    data.http.kubecost_eks_values.response_body, # Use downloaded YAML content
+    file("${path.module}/values.yaml")           # Local values override
   ]
 }
 

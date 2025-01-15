@@ -39,7 +39,7 @@ Additions to the original base application:
 
 ## Clean up
 ```bash
-kubectl delete -k sample-app
+kubectl kustomize sample-app | envsubst | kubectl delete -f -
 kubectl delete ingress -A --all # delete any remaining Load balancers provisioned by the ingress ALB controller
 aws dynamodb delete-table --table-name $CARTS_DYNAMODB_TABLENAME
 terraform -chdir=terraform destroy -auto-approve

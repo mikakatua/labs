@@ -35,7 +35,7 @@ variable "vpc_cidr" {
 variable "enable_cluster_autoscaler" {
   description = "Enable or disable Kubernetes Cluster Autoscaler"
   type        = bool
-  default     = false  # DISABLED: we use Karpenter for cluster autoscaling
+  default     = false # DISABLED: we use Karpenter for cluster autoscaling
 }
 
 variable "enable_karpenter" {
@@ -53,7 +53,7 @@ variable "enable_keda" {
 variable "enable_logging" {
   description = "Enable or disable AWS for Fluent Bit to send logs to CloudWatch"
   type        = bool
-  default     = false  # DISABLED: because CloudWatch it is too expensive!
+  default     = false # DISABLED: because CloudWatch it is too expensive!
 }
 
 variable "enable_monitoring" {
@@ -68,11 +68,18 @@ variable "enable_kubecost" {
   default     = false
 }
 
-variable "dynamodb_service_access" {
+variable "dynamodb_access_option" {
   description = "Define how to access AWS DynamoDB service: irsa or pod-identity"
   type        = string
   # default     = "irsa"
-  default     = "pod-identity"
+  default = "pod-identity"
+}
+
+variable "secrets_manager_option" {
+  description = "Define how to access manage the secrets: secrets-store-csi-driver or external-secrets"
+  type        = string
+  default     = "secrets-store-csi-driver"
+  # default     = "external-secrets"
 }
 
 ## Helm Chart versions
@@ -141,4 +148,22 @@ variable "kubecost_chart_version" {
   description = "The chart version of Kubecost to use"
   type        = string
   default     = "2.5.1"
+}
+
+variable "secrets_store_csi_driver_chart_version" {
+  description = "The chart version of secrets-store-csi-driver to use"
+  type        = string
+  default     = "1.4.7"
+}
+
+variable "secrets_store_csi_driver_provider_aws_chart_version" {
+  description = "The chart version of secrets-store-csi-driver-provider-aws to use"
+  type        = string
+  default     = "0.3.10"
+}
+
+variable "external_secrets_chart_version" {
+  description = "The chart version of external-secrets to use"
+  type        = string
+  default     = "0.12.1"
 }

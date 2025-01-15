@@ -1,4 +1,4 @@
-module "eks_blueprints_addons" {
+module "efs_csi_driver_addon" {
   source  = "aws-ia/eks-blueprints-addons/aws"
   version = "~> 1.19"
 
@@ -54,9 +54,5 @@ resource "kubernetes_storage_class" "efs" {
 
   mount_options = [
     "iam"
-  ]
-
-  depends_on = [
-    module.eks_blueprints_addons
   ]
 }

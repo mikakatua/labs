@@ -43,7 +43,7 @@ resource "aws_eks_access_entry" "karpenter" {
   principal_arn = module.karpenter_addon.karpenter.node_iam_role_arn
   type          = "EC2_LINUX"
 
-  tags          = var.module_inputs.tags
+  tags = var.module_inputs.tags
 }
 
 resource "kubectl_manifest" "karpenter_node_class" {

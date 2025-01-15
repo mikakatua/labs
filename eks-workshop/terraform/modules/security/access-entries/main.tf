@@ -93,9 +93,9 @@ resource "aws_eks_access_policy_association" "edit_policy_assets" {
 ## Carts Team access entry
 
 resource "aws_eks_access_entry" "carts_team_access" {
-  cluster_name  = var.module_inputs.cluster_name
-  principal_arn = aws_iam_role.eks_carts_team.arn
+  cluster_name      = var.module_inputs.cluster_name
+  principal_arn     = aws_iam_role.eks_carts_team.arn
   kubernetes_groups = ["carts-team"]
-  type          = "STANDARD"
-  tags          = var.module_inputs.tags
+  type              = "STANDARD"
+  tags              = var.module_inputs.tags
 }
