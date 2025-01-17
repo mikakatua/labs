@@ -404,6 +404,9 @@ module "secrets_manager" {
     secrets_store_csi_driver_provider_aws_chart_version = var.secrets_store_csi_driver_provider_aws_chart_version
     external_secrets_chart_version                      = var.external_secrets_chart_version
 
-    tags = local.tags
+    account_id = local.account_id
+    partition  = local.partition
+    region     = local.region
+    tags       = local.tags
   }
 }

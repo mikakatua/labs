@@ -11,21 +11,20 @@ ASCP allows workloads running on Amazon EKS to access secrets stored in Secrets 
 
 An alternative approach for integrating AWS Secrets Manager with Kubernetes is through [External Secrets Operator](https://external-secrets.io/). This operator synchronizes secrets from AWS Secrets Manager into Kubernetes Secrets, managing the entire lifecycle through an abstraction layer. It automatically injects values from Secrets Manager into Kubernetes Secrets.
 
-
 Currently, the catalog Deployment accesses database credentials from the `catalog-db` secret via the environment variables `DB_USER` and `DB_PASSWORD`. We will store the credentials in AWS Secrets Manager. This has already been created with Terraform:
 
 ```bash
 aws secretsmanager create-secret --name "eks-workshop/catalog-secret" \
-  --secret-string '{"username":"catalog_user", "password":"default_password"}'
+  --secret-string '{"username":"catalog", "password":"5YFMdokkZMeCyhik"}'
 ```
 
 ### AWS Secrets and Configuration Provider (ASCP)
 To provide access to secrets stored in AWS Secrets Manager via the CSI driver, you'll need a `SecretProviderClass` - a namespaced custom resource that specifies how to create and sync a Kubernetes secret with data from the AWS Secrets Manager secret.
 
-The following command creates a `SecretProviderClass` to sync the secret from AWS Secrets Manager (`eks-workshop/catalog-secret`) into the Kubernetes Secret (`catalog-db`):
+The following command creates a `SecretProviderClass` to sync the secret from AWS Secrets Manager (`eks-workshop/catalog-secret`) into a new Kubernetes Secret (`catalog-secret`):
 
 ```bash
-envsubst <<EOF | kubectl create -f -
+envsubst <<EOF | kubectl apply -f -
 apiVersion: secrets-store.csi.x-k8s.io/v1
 kind: SecretProviderClass
 metadata:
@@ -37,8 +36,13 @@ spec:
     objects: |
       - objectName: "$CATALOG_SECRET_NAME"
         objectType: "secretsmanager"
+        jmesPath:
+          - path: "username"
+            objectAlias: "username"
+          - path: "password"
+            objectAlias: "password"
   secretObjects:
-    - secretName: catalog-db
+    - secretName: catalog-secret
       type: Opaque
       data:
         - objectName: username
@@ -48,12 +52,23 @@ spec:
 EOF
 ```
 
-Another option is to mount the AWS Secrets Manager secret using the CSI driver at `/mnt/catalog-secret` inside the Pod. This will trigger AWS Secrets Manager to synchronize the stored secret contents with Amazon EKS and create a Kubernetes Secret that can be consumed as environment variables in the Pod. This requires to update the `catalog` deployment as follows:
+Let's modify the `catalog` Deployment to use the secret stored in AWS Secrets Manager as the source for credentials:
+```bash
+kubectl kustomize manifests/security/secrets-management/mounting-secrets \
+  | envsubst | kubectl apply -f-
 
-
+kubectl rollout restart -n catalog deployment/catalog
+```
 
 > ![NOTE]
 > The Secrets Store CSI Driver will sync secrets from AWS Secrets Manager into the pod as files (not directly as environment variables).
+
+The [kustomize patch](../../manifests/security/secrets-management/mounting-secrets/kustomization.yaml) annotates the ServiceAccount with the IAM role and mounts the AWS Secrets Manager secret using the CSI driver at `/mnt/catalog-secret` inside the Pod. This will trigger AWS Secrets Manager to synchronize the stored secret contents with Amazon EKS and create the Kubernetes Secret `catalog-secret` that can be consumed as environment variables in the Pod.
+
+The mount path `/mnt/catalog-secret` inside the container contains three files:
+* `eks-workshop-catalog-secret`: Contains the complete secret value in JSON format
+* `password`: Contains the password value filtered by jmesPath
+* `username`: Contains the username value filtered by jmesPath
 
 ### External Secrets Operator (ESO)
 The goal of External Secrets Operator is to synchronize secrets from external APIs (like AWS Secrets Manager) into Kubernetes. ESO is a collection of CRDs - `ExternalSecret`, `SecretStore` and `ClusterSecretStore` that provide a user-friendly abstraction for the external API that stores and manages the lifecycle of the secrets for you.

@@ -25,6 +25,7 @@ output "environment_variables" {
     CARTS_DYNAMODB_TABLENAME         = module.dynamodb_access.carts_dynamodb_tablename
     CARTS_IAM_ROLE                   = module.dynamodb_access.carts_iam_role
     CATALOG_SECRET_NAME              = module.secrets_manager.catalog_secret_name
+    CATALOG_IAM_ROLE                 = module.secrets_manager.catalog_iam_role
   }
 }
 
