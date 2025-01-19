@@ -112,3 +112,27 @@ module "iam_assumable_role_catalog_irsa" {
 
   tags = var.module_inputs.tags
 }
+
+resource "kubectl_manifest" "cluster_secret_store" {
+  count   = var.module_inputs.secrets_manager == "external-secrets" ? 1 : 0
+
+  yaml_body = <<-YAML
+    apiVersion: external-secrets.io/v1beta1
+    kind: ClusterSecretStore
+    metadata:
+      name: "cluster-secret-store"
+    spec:
+      provider:
+        aws:
+          service: SecretsManager
+          region: ${var.module_inputs.region}
+          auth:
+            jwt:
+              serviceAccountRef:
+                name: "external-secrets-sa"
+                namespace: "external-secrets"
+  YAML
+  depends_on = [
+    module.external_secrets_addon
+  ]
+}

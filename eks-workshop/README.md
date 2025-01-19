@@ -36,6 +36,7 @@ Additions to the original base application:
 * Updated the `checkout` deployment to increase the resources and schedule its pods on Fargate
 * Configure KEDA to scale the `ui` Deployment based on CloudWatch metrics
 * Migrate the `carts` component to use the fully managed Amazon DynamoDB (leveraging EKS Pod Identity)
+* Retrieve the database credentials in the `catalog` deployment from AWS Secrets Manager (using the External Secrets Operator)
 
 ## Clean up
 ```bash

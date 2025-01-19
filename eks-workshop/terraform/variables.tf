@@ -78,8 +78,8 @@ variable "dynamodb_access_option" {
 variable "secrets_manager_option" {
   description = "Define how to access manage the secrets: secrets-store-csi-driver or external-secrets"
   type        = string
-  default     = "secrets-store-csi-driver"
-  # default     = "external-secrets"
+  # default     = "secrets-store-csi-driver"
+  default     = "external-secrets"
 }
 
 ## Helm Chart versions

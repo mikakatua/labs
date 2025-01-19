@@ -33,12 +33,12 @@ spec:
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: catalog-db
+                  name: catalog-external-secret
                   key: username
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: catalog-db
+                  name: catalog-external-secret
                   key: password
           envFrom:
             - configMapRef:

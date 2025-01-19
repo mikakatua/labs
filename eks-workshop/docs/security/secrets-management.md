@@ -73,6 +73,36 @@ The mount path `/mnt/catalog-secret` inside the container contains three files:
 ### External Secrets Operator (ESO)
 The goal of External Secrets Operator is to synchronize secrets from external APIs (like AWS Secrets Manager) into Kubernetes. ESO is a collection of CRDs - `ExternalSecret`, `SecretStore` and `ClusterSecretStore` that provide a user-friendly abstraction for the external API that stores and manages the lifecycle of the secrets for you.
 
+The External Secrets operator has already been installed in your EKS cluster and the following `ClusterSecretStore` created:
+```bash
+cat manifests/security/secrets-management/external-secrets/cluster-secret-store.yaml \
+  | envsubst | kubectl apply -f -
+```
+
+This is a cluster-wide `SecretStore` that can be referenced by a `ExternalSecret` from any namespace. It uses a JSON Web Token (JWT) referenced to a ServiceAccount to authenticate with AWS Secrets Manager.
+
+The `ExternalSecret` `catalog-external-secret` [here](../../sample-app/catalog/external-secret.yaml) defines what data should be fetched from AWS Secrets Manager and how it should be transformed into a Kubernetes Secret. Let's look at the ExternalSecret specification:
+```
+$ kubectl -n catalog get externalsecrets.external-secrets.io catalog-external-secret -o yaml | yq '.spec'
+dataFrom:
+  - extract:
+      conversionStrategy: Default
+      decodingStrategy: None
+      key: eks-workshop/catalog-secret
+refreshInterval: 1h
+secretStoreRef:
+  kind: ClusterSecretStore
+  name: cluster-secret-store
+target:
+  creationPolicy: Owner
+  deletionPolicy: Retain
+```
+
+The configuration references our AWS Secrets Manager secret via the `key` parameter and the `ClusterSecretStore` we created earlier. The `refreshInterval` of 1 hour determines how often the secret values are synchronized.
+
+> [!NOTE]
+> The name of the `Secret` resource created defaults to the same name of the `ExternalSecret` resource
+
 ## Sealed Secrets
 [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets) provides a mechanism to encrypt a Secret object so that it is safe to store - even to a public Git repository.
 
