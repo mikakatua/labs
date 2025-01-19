@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: orders
-data:
-  RETAIL_ORDERS_MESSAGING_PROVIDER: rabbitmq
-  SPRING_DATASOURCE_URL: jdbc:postgresql://orders-postgresql:5432/orders
-  SPRING_RABBITMQ_ADDRESSES: amqp://orders-rabbitmq:5672

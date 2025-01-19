@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: carts
-data:
-  SPRING_PROFILES_ACTIVE: dynamodb
-  CARTS_DYNAMODB_TABLENAME: ${CARTS_DYNAMODB_TABLENAME}
-  CARTS_DYNAMODB_CREATETABLE: "true"
