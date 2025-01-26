@@ -1,0 +1,46 @@
+services:
+
+  webserver:
+    image: ${NGINX_IMAGE}
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/:ro
+      - ./certbot/www/:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+
+  certbot:
+    image: ${CERTBOT_IMAGE}
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+
+  wordpress:
+    image: ${WORDPRESS_IMAGE}
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: Pass@123
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress:/var/www/html
+
+  db:
+    image: ${MARIADB_IMAGE}
+    restart: always
+    environment:
+      MARIADB_DATABASE: wordpress
+      MARIADB_USER: wpuser
+      MARIADB_PASSWORD: Pass@123
+      MARIADB_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db:/var/lib/mysql
+
+volumes:
+  wordpress:
+  db:
