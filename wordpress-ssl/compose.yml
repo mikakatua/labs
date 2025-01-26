@@ -29,6 +29,7 @@ services:
       WORDPRESS_DB_NAME: wordpress
     volumes:
       - wordpress:/var/www/html
+      - ./wordpress/php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
 
   db:
     image: ${MARIADB_IMAGE}
