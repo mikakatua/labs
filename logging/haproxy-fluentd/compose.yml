@@ -1,0 +1,21 @@
+services:
+
+  fluentbit:
+    image: fluent/fluent-bit:1.9.5
+    volumes:
+      - ./fluentbit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+
+  fluentd:
+#    image: fluent/fluentd:v1.14.6-1.2
+    image: fluent/fluentd:v1.16
+    volumes:
+      - ./fluentd/fluent.conf:/fluentd/etc/fluent.conf
+
+  haproxy:
+    image: haproxy:2.4.24
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./haproxy/mysite.pem:/etc/ssl/certs/mysite.pem
+
+  http-listener:
+    image: mendhak/http-https-echo:30
